@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
 from models import SearchParams
 from duplicateFinder_difpy import find_duplicates
 from typing import List, Optional, Union , Literal
@@ -12,6 +12,6 @@ async def root():
     return {"message": "JUST A TEST"}
 
 @app.post("/run_search")
-async def run_search(params: SearchParams):
+async def run_search(params: SearchParams = Body(...)):
     results = find_duplicates(params)
     return {"results": results}

@@ -1,8 +1,7 @@
 from typing import List, Optional, Union , Literal
-from pydantic import BaseModel
-
+from pydantic import BaseModel, DirectoryPath
 class SearchParams(BaseModel):
-    directory: str | List[str]
+    directory: DirectoryPath | List[DirectoryPath]
     fast_search: bool = True
     recursive: bool = True
     similarity: Union[str, int, float, Literal['similar']] = 'duplicates'
