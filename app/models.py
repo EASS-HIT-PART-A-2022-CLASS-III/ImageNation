@@ -1,5 +1,28 @@
+from datetime import datetime
 from typing import List, Optional, Union , Literal
 from pydantic import BaseModel, DirectoryPath
+
+
+class ImageModel(BaseModel):
+    name: str
+    phash: str
+    lat: float
+    lon: float
+    date: datetime | None = None
+    image: bytes | None = None
+
+
+
+
+
+
+
+
+
+
+
+
+
 class SearchParams(BaseModel):
     directory: DirectoryPath | List[DirectoryPath]
     fast_search: bool = True
@@ -13,3 +36,4 @@ class SearchParams(BaseModel):
     delete: bool = False
     silent_del: bool = False
     logs: bool = False
+
