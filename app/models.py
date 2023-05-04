@@ -1,15 +1,18 @@
 from datetime import datetime
 from typing import List, Optional, Union , Literal
-from pydantic import BaseModel, DirectoryPath
+from pydantic import BaseModel, DirectoryPath, Field
 
+class GPS(BaseModel):
+    latitude: float | None = Field(None, example=0.0)
+    longitude: float | None = Field(None, example=0.0)
+    altitude: float | None = Field(None, example=0.0)
 
 class ImageModel(BaseModel):
-    name: str
-    phash: str
-    lat: float
-    lon: float
-    date: datetime | None = None
-    image: bytes | None = None
+    name: str = Field(..., example="image.jpg")
+    phash: str = Field(None, example="0000000000000000")
+    gps: GPS | None = Field(None)
+    date: datetime | None = Field(None, example="01-01-2021 00:00:00")
+    image: bytes | None = Field(None, example="bytes") 
 
 
 
