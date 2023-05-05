@@ -1,4 +1,7 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+import shutil
+import time
+from fastapi import Body, FastAPI, File, Request, UploadFile, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Optional, Tuple, Union
 from imagededup.methods import PHash
 from PIL import Image
@@ -8,9 +11,21 @@ import os
 from datetime import datetime
 import base64
 from models import ImageModel, GPS
+import tempfile
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
-app = FastAPI()
+app = FastAPI(title="ImagePlotter", version="0.1.0")
+
+class ProccessingTimeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
+    
+app.add_middleware(ProccessingTimeMiddleware)
 
 database = {}
 
@@ -18,7 +33,7 @@ database = {}
 async def read_image_data(file: UploadFile) -> bytes:
     return await file.read()
 
-def extract_gps_and_date(image_data: bytes) -> Tuple[float, float, float, datetime]:
+async def extract_gps_and_date(image_data: bytes) -> Tuple[float, float, float, datetime]:
     try:
         with Image.open(io.BytesIO(image_data)) as img:
             exif_data = img._getexif()
@@ -48,29 +63,41 @@ def extract_gps_and_date(image_data: bytes) -> Tuple[float, float, float, dateti
                 return lat, lon, altitude, datetime_original
         return None, None, None, datetime_original
     except Exception as e:
-        print(e)
+        print({f"error": str(e)})
         return None, None, None, None
 
-def calculate_phash_value(image_data: bytes) -> str:
+async def calculate_phash_value(image_data: bytes) -> str:
     phasher = PHash()
-    with Image.open(io.BytesIO(image_data)) as img:
-         return phasher.encode_image(image_array=img)
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        try:
+            tmp_file.write(image_data)
+            path = tmp_file.name
+            result = phasher.encode_image(path)
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            shutil.os.remove(path)
+    return result
 
 async def process_image_file(file: UploadFile) -> Union[ImageModel, None]:
     image_data = await read_image_data(file)
-    lat, lon, alt, date = extract_gps_and_date(image_data)
+    lat, lon, alt, date = await extract_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt)
-    #phash_value = calculate_phash_value(image_data)
+    phash_value = await calculate_phash_value(image_data)
     image_obj = ImageModel(
         name=file.filename,
-        #phash=phash_value,
+        phash=phash_value,
         gps=gps_data.dict(),
         date=date,
         image=image_data
     )
     return image_obj
 
-@app.post("/upload_image_and_calculate_phash/")
+@app.get("/")
+async def home():
+    return {"message": "welcome to the image deduplication api"}
+
+@app.post("/images/",response_description="The created images") #response_model=ImageModel, )
 async def upload_and_calculate_phash(files: List[UploadFile] = File(...)):
     for file in files:
         image_obj = await process_image_file(file)
@@ -78,24 +105,50 @@ async def upload_and_calculate_phash(files: List[UploadFile] = File(...)):
             database[image_obj.name] = image_obj.dict()
     return {"status": "success", "message": f"{len(files)} images uploaded"}
 
-@app.get("/images/{image_name}")
+@app.get("/images/{image_name}", response_model=ImageModel, response_description="The image")
 async def get_image(image_name: str):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
     image_obj = ImageModel(**database[image_name])
-    return image_obj
+    return {"image": image_obj}
 
-@app.delete("/delete_image/{image_name}")
+@app.get("/images", response_model=List[ImageModel], response_description="The list of images")
+async def get_images():
+    if database:
+        return {"images":database}
+    else:
+        raise HTTPException(status_code=404, detail=f"No images found")
+
+@app.delete("/delete_image/{image_name}", response_description="The deleted image")
 async def delete_image(image_name: str):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
     del database[image_name]
     return {"status": "success", "message": f"{image_name} deleted"}
 
+@app.put("/update_image/{image_name}", response_model=ImageModel, response_model_exclude_unset=True, response_description="The updated image")
+async def update_image(image_name: str, image: ImageModel):
+    if image_name not in database:
+        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
+    update_image_encoded = jsonable_encoder(image)
+    database[image_name] = update_image_encoded
+    return {"image": update_image_encoded}
 
-
-
-
+@app.patch("/images/{image_name}", response_model=ImageModel, response_description="The updated image")
+async def patc_item(image_name: str, image: ImageModel):
+    if image_name not in database:
+        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
+    stored_image_data = database.get(image_name)
+    if stored_image_data is not None:
+        stored_image_model = ImageModel(**stored_image_data)    
+        update_data = image.dict(exclude_unset=True)
+        update_image = stored_image_model.copy(update=update_data)
+        update_image_encoded = jsonable_encoder(update_image)
+        database[image_name] = update_image_encoded
+        return {"image": update_image_encoded}
+    
+    database[image_name] = image
+    return {"status": "success", "message": f"{image_name} updated"}
 
 
 
