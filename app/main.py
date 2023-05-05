@@ -27,7 +27,35 @@ class ProccessingTimeMiddleware(BaseHTTPMiddleware):
     
 app.add_middleware(ProccessingTimeMiddleware)
 
-database = {}
+database =  {
+    "image1.jpg": {
+        "name": "image1.jpg",
+        "phash": "abc123",
+        "gps": {
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "altitude": 0.0
+        },
+        "date": "2022-05-05 12:00:00"
+    },
+    "image2.jpg": {
+        "name": "image2.jpg",
+        "phash": "def456",
+        "gps": None,
+        "date": "2022-05-05 12:00:00"
+    },
+    "image3.jpg": {
+        "name": "image2.jpg",
+        "phash": "abc123",
+        "gps": {
+            "latitude": 10.0,
+            "longitude": 20.0,
+            "altitude": 30.0
+        },
+        "date": "2022-05-02 12:00:00",
+        "image": None
+    }
+}
 
 
 async def read_image_data(file: UploadFile) -> bytes:
@@ -95,15 +123,18 @@ async def process_image_file(file: UploadFile) -> Union[ImageModel, None]:
 
 @app.get("/")
 async def home():
-    return {"message": "welcome to the image deduplication api"}
+    return {"message": "Welcome to ImagePlotter"}
 
-@app.post("/images/",response_description="The created images") #response_model=ImageModel, )
+
+@app.post("/images/", response_description="The created images", status_code=status.HTTP_201_CREATED)
 async def upload_and_calculate_phash(files: List[UploadFile] = File(...)):
     for file in files:
         image_obj = await process_image_file(file)
         if image_obj:
             database[image_obj.name] = image_obj.dict()
     return {"status": "success", "message": f"{len(files)} images uploaded"}
+
+
 
 @app.get("/images/{image_name}", response_model=ImageModel, response_description="The image")
 async def get_image(image_name: str):
@@ -126,7 +157,7 @@ async def delete_image(image_name: str):
     del database[image_name]
     return {"status": "success", "message": f"{image_name} deleted"}
 
-@app.put("/update_image/{image_name}", response_model=ImageModel, response_model_exclude_unset=True, response_description="The updated image")
+@app.put("/update_image/{image_name}", response_model=ImageModel, response_description="The updated image")
 async def update_image(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
@@ -135,7 +166,7 @@ async def update_image(image_name: str, image: ImageModel):
     return {"image": update_image_encoded}
 
 @app.patch("/images/{image_name}", response_model=ImageModel, response_description="The updated image")
-async def patc_item(image_name: str, image: ImageModel):
+async def patch_item(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
     stored_image_data = database.get(image_name)
@@ -146,39 +177,25 @@ async def patc_item(image_name: str, image: ImageModel):
         update_image_encoded = jsonable_encoder(update_image)
         database[image_name] = update_image_encoded
         return {"image": update_image_encoded}
-    
-    database[image_name] = image
+    else:
+        database[image_name] = image
     return {"status": "success", "message": f"{image_name} updated"}
 
+async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
+    phasher = PHash()
+    image_encodings = {}
+    for image_name, image_model in images.items():
+        if image_model.phash:
+            image_encodings[image_name] = image_model.phash
+        elif image_model.image:
+            image_encodings[image_name] = await calculate_phash_value(image_model.image)
+    duplicates = phasher.find_duplicates_to_remove(encoding_map=image_encodings, max_distance_threshold=12)
+    return duplicates
 
-
-
-
-
-
-
-
-
-
-
-
-
-""" @app.get("/find_duplicates")
-async def find_duplicates():
-    # Create a list to hold the image paths
-    image_paths = []
-
-    # Loop through the image data in the database
-    for filename, data in database.items():
-        # Get the image path and PHash value
-        image_path = os.path.join(images_dir, filename)
-        phash_value = data['phash']
-
-        # Add the image path to the list
-        image_paths.append(image_path)
-
-    # Use ImageDedup to find duplicate images
-    duplicates = phasher.find_duplicates(image_dir=images_dir, image_list=image_paths)
-
-    # Return the duplicate images as a dictionary
-    return {"duplicates": duplicates} """
+@app.get("/find_duplicate_images",tags=["Dup"], response_description="The duplicate images")
+async def find_duplicate_images(): 
+    if database:
+        duplicates = await find_duplicate_images(database)
+        return {"duplicates": duplicates}
+    else:
+        raise HTTPException(status_code=404, detail=f"No images found")

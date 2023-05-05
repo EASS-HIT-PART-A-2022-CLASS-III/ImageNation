@@ -18,9 +18,3 @@ pHasher = PHash()
 #                                                outfile='my_duplicates.json')
 
 ##########find only duplicate photos############
-
-duplicates = pHasher.find_duplicates_to_remove(image_dir='/mnt/c/Users/galil/test', 
-                                               max_distance_threshold=12,
-                                               recursive=True,
-                                               outfile='my_duplicates.json')
-print(duplicates)

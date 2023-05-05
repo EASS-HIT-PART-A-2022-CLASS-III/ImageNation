@@ -3,3 +3,9 @@ uvicorn
 pydantic
 imagededup
 difPy
+python-multipart
+typing
+Pillow
+python-multipart
+starlette
+httpx
