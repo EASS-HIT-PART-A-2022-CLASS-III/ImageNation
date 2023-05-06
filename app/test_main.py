@@ -1,56 +1,10 @@
 from fastapi.testclient import TestClient
+from fastapi import status
 from main import app
-from models import ImageModel, GPS
-from datetime import datetime
-import base64
-import io
 import os
-import json
-import tempfile
-import shutil
-import time
-from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
-from imagededup.methods import PHash
-from imagededup.utils import plot_duplicates
-import numpy as np
-from typing import List, Dict, Optional, Tuple, Union
-from fastapi import Body, FastAPI, File, Request, UploadFile, HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from starlette.middleware.base import BaseHTTPMiddleware
-
 
 client = TestClient(app=app)
-
-fakeDB = {
-    "image1.jpg": {
-        "name": "image1.jpg",
-        "phash": "abc123",
-        "gps": {
-            "latitude": 37.7749,
-            "longitude": -122.4194,
-            "altitude": 0.0
-        },
-        "date": "2022-05-05 12:00:00"
-    },
-    "image2.jpg": {
-        "name": "image2.jpg",
-        "phash": "def456",
-        "gps": None,
-        "date": "2022-05-05 12:00:00"
-    },
-    "image3.jpg": {
-        "name": "image2.jpg",
-        "phash": "abc123",
-        "gps": {
-            "latitude": 10.0,
-            "longitude": 20.0,
-            "altitude": 30.0
-        },
-        "date": "2022-05-02 12:00:00",
-        "image": None
-    }
-}
 
 def test_read_main():
     response = client.get("/")
@@ -58,10 +12,53 @@ def test_read_main():
     assert response.json() == {"message": "Welcome to ImagePlotter"}
 
 def test_upload_and_calculate_phash():
-    test_images_dir = "/home/royga/eass/finalproject/myImages/test_images/"
-    test_images = ["IMG_1.jpeg", "IMG_2.jpeg", "IMG_3.jpeg","IMG_4(copy).jpeg"]
-    files = [("files", (open(os.path.join(test_images_dir, image_name), "rb"))) for image_name in test_images]
-    response = client.post("/images/", files=files)
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.json()["status"] == "success"
-    assert response.json()["message"] == f"{len(test_images)} images uploaded"
+     test_images_dir = "test_images" #"/home/royga/eass/finalproject/myImages/test_images/"
+     test_images = ["IMG_1.jpeg", "IMG_2.jpeg", "IMG_3.jpeg","IMG_4(copy).jpeg"]
+     files = [("files", (open(os.path.join(test_images_dir, image_name), "rb"))) for image_name in test_images]
+     response = client.post("/images/", files=files)
+     assert response.status_code == status.HTTP_201_CREATED
+     assert response.json()["status"] == "success"
+     assert response.json()["message"] == f"{len(test_images)} images uploaded"
+
+
+test_image_name = "image1.jpg"
+
+def test_get_image():
+    
+    response = client.get(f"/images/{test_image_name}")
+    assert response.status_code == 200
+    assert response.json()["name"] == test_image_name
+    response = client.get("/images/nonexistent_image.jpg")
+    assert response.status_code == 404
+
+
+def test_get_images():
+    response = client.get("/images")
+    assert response.status_code == 200
+    images = response.json()
+    assert len(images) > 0
+    assert test_image_name in [image["name"] for image in images]
+
+
+
+
+
+
+
+# def test_upload_and_calculate_phash():
+#     test_images_dir = "test_images"
+#     image_files = [
+#         (image_file, open(os.path.join(test_images_dir, image_file), "rb"))
+#         for image_file in os.listdir(test_images_dir)
+#     ]
+
+#     response = client.post(
+#         "/images/",
+#         files=[("files", (image_file, image_content, "image/jpeg")) for image_file, image_content in image_files]
+#     )
+
+#     for _, image_content in image_files:
+#         image_content.close()
+
+#     assert response.status_code == 201
+#     assert response.json() == {"status": "success", "message": f"{len(image_files)} images uploaded"}
