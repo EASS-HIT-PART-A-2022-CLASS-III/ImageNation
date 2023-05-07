@@ -82,6 +82,12 @@ def decode_base64(encoded_str: str) -> bytes:
 
 async def read_image_data(file: UploadFile) -> bytes:
     return await file.read()
+ 
+async def delete_exif_data(img: Image) -> Image:
+    data = list(img.getdata())
+    img_without_exif = Image.new(img.mode, img.size)
+    img_without_exif.putdata(data)
+    return img_without_exif
 
 async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, datetime]:
     try:
@@ -120,14 +126,14 @@ async def calculate_phash_value(image_data: bytes) -> str:
             shutil.os.remove(path)
     return result
 
-async def process_image_file(file: UploadFile) -> Union[ImageModel, None]:
-    image_data = await read_image_data(file)
+async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
+    image_data = await read_image_data(image)
+    phash_value = await calculate_phash_value(image_data)
     lat, lon, alt, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt)
-    phash_value = await calculate_phash_value(image_data)
     image_encoded = encode_base64(image_data)
     image_obj = ImageModel(
-        name=file.filename,
+        name=image.filename,
         phash=phash_value,
         gps=gps_data.dict(),
         date=date,
@@ -141,12 +147,12 @@ async def home():
 
 
 @app.post("/images/", response_description="The created images", status_code=status.HTTP_201_CREATED)
-async def upload_and_calculate_phash(files: List[UploadFile] = File(...)):
-    for file in files:
-        image_obj = await process_image_file(file)
+async def upload_and_calculate_phash(images: List[UploadFile] = File(...)):
+    for image in images:
+        image_obj = await process_image_file(image)
         if image_obj:
             database[image_obj.name] = image_obj
-    return {"status": "success", "message": f"{len(files)} images uploaded",}
+    return {"status": "success", "message": f"{len(images)} images uploaded",}
 
 
 # @app.get("/images/{image_name}", response_model=ImageModel, response_description="The image", status_code=status.HTTP_200_OK)
@@ -177,7 +183,7 @@ async def delete_image(image_name: str):
     del database[image_name]
     return {"status": "success", "message": f"{image_name} deleted"}
 
-@app.put("/updateImage/{image_name}", response_model=ImageModel, response_description="The updated image",status_code=status.HTTP_202_ACCEPTED)
+@app.put("/updateImage/{image_name}", response_description="The updated image",status_code=status.HTTP_202_ACCEPTED)
 async def update_image(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
@@ -185,7 +191,7 @@ async def update_image(image_name: str, image: ImageModel):
     database[image_name] = update_image_encoded
     return {"image": update_image_encoded}
 
-@app.patch("/patchImage/{image_name}", response_model=ImageModel, response_description="The updated image", status_code=status.HTTP_202_ACCEPTED)
+@app.patch("/patchImage/{image_name}", response_description="The updated image", status_code=status.HTTP_202_ACCEPTED)
 async def patch_image(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
@@ -219,3 +225,4 @@ async def find_duplicate():
         return {"duplicates": duplicates}
     else:
         raise HTTPException(status_code=404, detail=f"No images found")
+    

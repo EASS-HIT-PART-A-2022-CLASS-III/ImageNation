@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from typing import List, Optional, Union , Literal
 from pydantic import BaseModel, DirectoryPath, Field
 
@@ -11,20 +12,19 @@ class ImageModel(BaseModel):
     name: str = Field(..., example="image.jpg")
     phash: str = Field(None, example="0000000000000000")
     gps: GPS | None = Field(None)
-    date: datetime | None = Field(None, example="01-01-2021 00:00:00")
-    image: bytes | None = Field(None, example="bytes") 
+    date: datetime | None = Field(None, example="2021-01-01 00:00:00")
+    content: str | None = Field(None, example="kjhfdfasf")
 
 
 
 
 
-
-
-
-
-
-
-
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, z):
+        if isinstance(z, datetime):
+            return (str(z))
+        else:
+            return super().default(z)
 
 class SearchParams(BaseModel):
     directory: DirectoryPath | List[DirectoryPath]

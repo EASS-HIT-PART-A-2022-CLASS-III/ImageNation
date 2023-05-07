@@ -1,8 +1,13 @@
+import json
 from fastapi.testclient import TestClient
 from fastapi import status
+import pytest
+from app.models import GPS, ImageModel, DateTimeEncoder
 from main import app
 import os
 from PIL.ExifTags import TAGS, GPSTAGS
+from datetime import datetime, date
+
 
 client = TestClient(app=app)
 
@@ -22,6 +27,8 @@ def test_upload_and_calculate_phash():
 
 
 test_image_name = "image1.jpg"
+test_image_name3 = "image3.jpg"
+test_date=datetime(2022, 6, 2, 12, 0, 0),
 
 def test_get_image():
     
@@ -39,26 +46,23 @@ def test_get_images():
     assert len(images) > 0
     assert test_image_name in [image["name"] for image in images]
 
+def test_delete_image():
+    response = client.delete(f"/deleteImage/{test_image_name}")
+    assert response.status_code == 200
+    assert response.json()["message"] == f"{test_image_name} deleted"
+    fake_image_name = "fake_image.jpg"
+    response = client.delete(f"/deleteImage/{fake_image_name}")
+    assert response.status_code == 404
 
 
+def test_find_duplicate():
+    with pytest.warns(RuntimeWarning, match='Parameter num_enc_workers has no effect'): #ignore warning
+        response = client.get("/findDuplicateImages")
+    assert response.status_code == 200
+    assert "image3.jpg" in response.json()["duplicates"]
 
-
-
-
-# def test_upload_and_calculate_phash():
-#     test_images_dir = "test_images"
-#     image_files = [
-#         (image_file, open(os.path.join(test_images_dir, image_file), "rb"))
-#         for image_file in os.listdir(test_images_dir)
-#     ]
-
-#     response = client.post(
-#         "/images/",
-#         files=[("files", (image_file, image_content, "image/jpeg")) for image_file, image_content in image_files]
-#     )
-
-#     for _, image_content in image_files:
-#         image_content.close()
-
-#     assert response.status_code == 201
-#     assert response.json() == {"status": "success", "message": f"{len(image_files)} images uploaded"}
+        
+def test_datetime_encoder():
+    dt = datetime(2023, 5, 7, 14, 30)
+    encoded_dt = json.dumps(dt, cls=DateTimeEncoder)
+    assert encoded_dt == '"2023-05-07 14:30:00"'
