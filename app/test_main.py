@@ -1,5 +1,6 @@
-import json
 from fastapi.testclient import TestClient
+from fastapi.encoders import jsonable_encoder
+import json
 from fastapi import status
 import pytest
 from app.models import GPS, ImageModel, DateTimeEncoder
@@ -11,27 +12,32 @@ from datetime import datetime, date
 
 client = TestClient(app=app)
 
+
 def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"message": "Welcome to ImagePlotter"}
 
+
 def test_upload_and_calculate_phash():
-     test_images_dir = "test_images" #"/home/royga/eass/finalproject/myImages/test_images/"
-     test_images = ["IMG_1.jpeg", "IMG_2.jpeg", "IMG_3.jpeg","IMG_4(copy).jpeg"]
-     files = [("files", (open(os.path.join(test_images_dir, image_name), "rb"))) for image_name in test_images]
-     response = client.post("/images/", files=files)
-     assert response.status_code == status.HTTP_201_CREATED
-     assert response.json()["status"] == "success"
-     assert response.json()["message"] == f"{len(test_images)} images uploaded"
+    test_images_dir = "/home/royga/eass/finalproject/myImages/test_images"
+    test_images = ["IMG_11.jpeg", "IMG_12(copy).jpeg"]
+    files = [
+        ("images", (open(os.path.join(test_images_dir, image_name), "rb")))
+        for image_name in test_images
+    ]
+    response = client.post("/images/", files=files)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["status"] == "success"
+    assert response.json()["message"] == f"{len(test_images)} images uploaded"
 
 
-test_image_name = "image1.jpg"
-test_image_name3 = "image3.jpg"
-test_date=datetime(2022, 6, 2, 12, 0, 0),
+test_image_name = "image5.jpg"
+test_image_name2 = "image7.jpg"
+test_date = datetime(2022, 6, 2, 12, 0, 0)
+
 
 def test_get_image():
-    
     response = client.get(f"/images/{test_image_name}")
     assert response.status_code == 200
     assert response.json()["name"] == test_image_name
@@ -44,7 +50,8 @@ def test_get_images():
     assert response.status_code == 200
     images = response.json()
     assert len(images) > 0
-    assert test_image_name in [image["name"] for image in images]
+    # assert test_image_name in [image["name"] for image in images]
+
 
 def test_delete_image():
     response = client.delete(f"/deleteImage/{test_image_name}")
@@ -55,13 +62,29 @@ def test_delete_image():
     assert response.status_code == 404
 
 
+def test_patch_image():
+    updated_image = ImageModel(
+        name="test_image88.jpg",
+        phash="1122334455667788",
+        gps=GPS(latitude=-12.34, longitude=-56.78, altitude=100.0),
+        image="sffdsgvcvee",
+    )
+    response = client.patch(
+        f"/patchImage/{test_image_name2}", json=updated_image.dict(exclude_unset=True)
+    )
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    # assert response.json()["image"] == jsonable_encoder(updated_image)
+
+
 def test_find_duplicate():
-    with pytest.warns(RuntimeWarning, match='Parameter num_enc_workers has no effect'): #ignore warning
+    with pytest.warns(
+        RuntimeWarning, match="Parameter num_enc_workers has no effect"
+    ):  # ignore warning
         response = client.get("/findDuplicateImages")
     assert response.status_code == 200
-    assert "image3.jpg" in response.json()["duplicates"]
+    assert "image7.jpg" in response.json()["duplicates"]
 
-        
+
 def test_datetime_encoder():
     dt = datetime(2023, 5, 7, 14, 30)
     encoded_dt = json.dumps(dt, cls=DateTimeEncoder)

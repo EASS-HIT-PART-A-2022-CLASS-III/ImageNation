@@ -1,15 +1,11 @@
 FROM python:3.9
 
-WORKDIR /app
+WORKDIR /myImages
 
-#RUN apt-get update
+COPY ./requirements.txt myImages/requirements.txt
 
-COPY ./requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r myImages/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+COPY . /myImages/app
 
-COPY . .
-
-#EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8800"]
