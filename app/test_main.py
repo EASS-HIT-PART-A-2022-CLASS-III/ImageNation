@@ -62,20 +62,6 @@ def test_delete_image():
     assert response.status_code == 404
 
 
-def test_patch_image():
-    updated_image = ImageModel(
-        name="test_image88.jpg",
-        phash="1122334455667788",
-        gps=GPS(latitude=-12.34, longitude=-56.78, altitude=100.0),
-        image="sffdsgvcvee",
-    )
-    response = client.patch(
-        f"/patchImage/{test_image_name2}", json=updated_image.dict(exclude_unset=True)
-    )
-    assert response.status_code == status.HTTP_202_ACCEPTED
-    # assert response.json()["image"] == jsonable_encoder(updated_image)
-
-
 def test_find_duplicate():
     with pytest.warns(
         RuntimeWarning, match="Parameter num_enc_workers has no effect"

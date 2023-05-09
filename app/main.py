@@ -9,7 +9,7 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
 import base64
-from models import ImageModel, GPS
+from app.models import ImageModel, GPS
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware
 
