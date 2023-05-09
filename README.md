@@ -18,7 +18,7 @@ These instructions will get you a copy of the project up and running on your loc
 1. Clone the repository:
 
 ```
-git clone https://github.com/<your-github-username>/imageplotter.git
+git clone https://github.com/EASS-HIT-PART-A-2022-CLASS-III/myImages.git
 ```
 
 2. Navigate to the project directory:
