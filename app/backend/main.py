@@ -9,9 +9,13 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
 import base64
-from app.models import ImageModel, GPS
+import sys
+sys.path.append('..')
+from models import ImageModel, GPS
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware
+from geopy import Point
+from geopy.geocoders import Nominatim
 
 
 app = FastAPI(title="ImagePlotter", version="0.1.0")
@@ -62,7 +66,7 @@ database = {
 
 async def extract_gps_data_and_convert_to_decimal(
     gps_data: dict,
-) -> Tuple[float, float, float]:
+) -> Tuple[float, float, float, str]:
     latitude = gps_data.get("GPSLatitude", None)
     longitude = gps_data.get("GPSLongitude", None)
     latitude_ref = gps_data.get("GPSLatitudeRef", None)
@@ -77,9 +81,23 @@ async def extract_gps_data_and_convert_to_decimal(
             -1 if longitude_ref == "W" else 1
         )
         alt = altitude * (-1 if altitude_ref == 1 else 1)
-        return lat, lon, alt
+        country = get_country_name(lat, lon)
+        return lat, lon, alt, country
     else:
-        return None, None, None
+        return None, None, None, None
+
+def get_country_name(latitude: float, longitude: float) -> str:
+    try:
+        geolocator = Nominatim(user_agent="geoapiExercises")
+        point = Point(latitude, longitude)
+        location = geolocator.reverse(point,exactly_one=True, language='en')
+        address = location.raw.get('address')
+        if address and 'country' in address:
+            return address['country']
+    except:
+        pass
+
+    return None
 
 
 def encode_base64(byte_array: bytes) -> str:
@@ -117,10 +135,10 @@ async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, da
                 elif tag_name == "DateTimeOriginal":
                     datetime_original = datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
         if gps_data:
-            lat, lon, altitude = await extract_gps_data_and_convert_to_decimal(gps_data)
-            return lat, lon, altitude, datetime_original
+            lat, lon, altitude, country = await extract_gps_data_and_convert_to_decimal(gps_data)
+            return lat, lon, altitude, country, datetime_original
         else:
-            return None, None, None, datetime_original
+            return None, None, None, None, datetime_original
     except Exception as e:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -149,8 +167,8 @@ async def calculate_phash_value(image_data: bytes) -> str:
 async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
     image_data = await read_image_data(image)
     phash_value = await calculate_phash_value(image_data)
-    lat, lon, alt, date = await parse_gps_and_date(image_data)
-    gps_data = GPS(latitude=lat, longitude=lon, altitude=alt)
+    lat, lon, alt, country, date = await parse_gps_and_date(image_data)
+    gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, country=country)
     image_encoded = encode_base64(image_data)
     image_obj = ImageModel(
         name=image.filename,
@@ -160,7 +178,6 @@ async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
         content=image_encoded,
     )
     return image_obj
-
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def home():

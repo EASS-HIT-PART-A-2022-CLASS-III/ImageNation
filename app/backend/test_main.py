@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 import json
 from fastapi import status
 import pytest
-from app.models import GPS, ImageModel, DateTimeEncoder
+from app.backend.models import GPS, ImageModel, DateTimeEncoder
 from main import app
 import os
 from PIL.ExifTags import TAGS, GPSTAGS

@@ -8,7 +8,7 @@ class GPS(BaseModel):
     latitude: float | None = Field(None, example=0.0)
     longitude: float | None = Field(None, example=0.0)
     altitude: float | None = Field(None, example=0.0)
- 
+    country: str | None = Field(None, example="Israel")
 
 
 class ImageModel(BaseModel):
