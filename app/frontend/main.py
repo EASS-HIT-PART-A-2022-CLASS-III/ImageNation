@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import requests
 import folium
 from streamlit_folium import folium_static
@@ -8,18 +9,35 @@ from PIL import Image
 import base64
 import hashlib
 import sys
-sys.path.append('..')
+sys.path.append("..")
 from models import ImageModel
 
+################removing streamlit buttom-logo
+st.markdown("""
+<style>
+.css-cio0dv.egzxvld1
+{
+    visibility: hidden;
+}
+</style>
+    """, unsafe_allow_html=True)
+################Welcome To App
+st.title("ImagePlotter")
+st.header("Upload images to plot them on a map.")
+st.markdown("---")
 
-st.title("Upload Images")
 
-uploaded_files = st.file_uploader("Choose images...", type=["jpg", "png"], accept_multiple_files=True)
+################Upload images
+uploaded_files = st.file_uploader(
+    "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
+)
 if uploaded_files:
     files_dict = []
     for uploaded_file in uploaded_files:
         file_bytes = io.BytesIO(uploaded_file.read())
-        files_dict.append(("images", (uploaded_file.name, file_bytes, uploaded_file.type)))
+        files_dict.append(
+            ("images", (uploaded_file.name, file_bytes, uploaded_file.type))
+        )
     response = requests.post(
         "http://localhost:8000/images/",
         files=files_dict,
@@ -29,15 +47,34 @@ if uploaded_files:
     else:
         st.error("Failed to upload images.")
 
-# def get_images():
-#     response = requests.get("http://localhost:8000/images")
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         st.error("Failed to retrieve images.")
-#         return []
 
 
+
+################Show uploaded images
+#st.dataframe(pd.DataFrame(get_images()))
+
+################show image
+#st.image("ImgName.jpg", caption="Sunrise by the mountains", use_column_width=True)
+
+def get_images():
+    response = requests.get("http://localhost:8000/images")
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error("Failed to retrieve images.")
+        return []
+
+
+################radio button to see uploaded images
+imageView_radioButton = st.radio("View images",options=["Show details Table", "Show small images", "Show images on map"] , on_change=None, index=0, key=None)
+
+################Show Specific details of uploaded images
+imageDetails_multiSelect = st.multiselect("Select which details to show", options=["name", "size", "phash", "gps", "datetime"])
+
+
+
+
+################plot images on map################
 # def plot_images_on_map(images):
 #     # Create a folium map
 #     m = folium.Map(
@@ -84,10 +121,9 @@ if uploaded_files:
 # plot_images_on_map(images)
 
 
-
 # # # create a folium map
-# # m = folium.Map(location=[45.523, -122.675], 
-# #                zoom_start=13, 
+# # m = folium.Map(location=[45.523, -122.675],
+# #                zoom_start=13,
 # #                tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 # #                attr='Esri')
 

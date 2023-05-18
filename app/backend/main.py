@@ -10,7 +10,8 @@ import io
 from datetime import datetime
 import base64
 import sys
-sys.path.append('..')
+
+sys.path.append("..")
 from models import ImageModel, GPS
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -86,14 +87,15 @@ async def extract_gps_data_and_convert_to_decimal(
     else:
         return None, None, None, None
 
+
 def get_country_name(latitude: float, longitude: float) -> str:
     try:
         geolocator = Nominatim(user_agent="geoapiExercises")
         point = Point(latitude, longitude)
-        location = geolocator.reverse(point,exactly_one=True, language='en')
-        address = location.raw.get('address')
-        if address and 'country' in address:
-            return address['country']
+        location = geolocator.reverse(point, exactly_one=True, language="en")
+        address = location.raw.get("address")
+        if address and "country" in address:
+            return address["country"]
     except:
         pass
 
@@ -135,7 +137,9 @@ async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, da
                 elif tag_name == "DateTimeOriginal":
                     datetime_original = datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
         if gps_data:
-            lat, lon, altitude, country = await extract_gps_data_and_convert_to_decimal(gps_data)
+            lat, lon, altitude, country = await extract_gps_data_and_convert_to_decimal(
+                gps_data
+            )
             return lat, lon, altitude, country, datetime_original
         else:
             return None, None, None, None, datetime_original
@@ -178,6 +182,7 @@ async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
         content=image_encoded,
     )
     return image_obj
+
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def home():
