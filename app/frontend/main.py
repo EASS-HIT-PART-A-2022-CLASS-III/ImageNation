@@ -9,18 +9,22 @@ from PIL import Image
 import base64
 import hashlib
 import sys
+
 sys.path.append("..")
 from models import ImageModel
 
 ################removing streamlit buttom-logo
-st.markdown("""
+st.markdown(
+    """
 <style>
 .css-cio0dv.egzxvld1
 {
     visibility: hidden;
 }
 </style>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 ################Welcome To App
 st.title("ImagePlotter")
 st.header("Upload images to plot them on a map.")
@@ -48,14 +52,11 @@ if uploaded_files:
         st.error("Failed to upload images.")
 
 
-
-
 ################Show uploaded images
-#st.dataframe(pd.DataFrame(get_images()))
+# st.dataframe(pd.DataFrame(get_images()))
 
 ################show image
-#st.image("ImgName.jpg", caption="Sunrise by the mountains", use_column_width=True)
-
+# st.image("ImgName.jpg", caption="Sunrise by the mountains", use_column_width=True)
 
 
 ################plot images on map################

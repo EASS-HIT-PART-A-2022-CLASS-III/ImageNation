@@ -2,16 +2,22 @@ import streamlit as st
 import pandas as pd
 
 ################removing streamlit buttom-logo
-st.markdown("""
+st.markdown(
+    """
 <style>
 .css-cio0dv.egzxvld1
 {
     visibility: hidden;
 }
 </style>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
-st.markdown("<h1 style='text-align: center; color: red;'>Edit Image Data</h1>", unsafe_allow_html=True)
+st.markdown(
+    "<h1 style='text-align: center; color: red;'>Edit Image Data</h1>",
+    unsafe_allow_html=True,
+)
 with st.form("Edit Image Data", clear_on_submit=True):
     image_name = st.text_input("Image Name")
     col1, col2 = st.columns(2)
@@ -25,7 +31,6 @@ with st.form("Edit Image Data", clear_on_submit=True):
             st.success("Successfully edited image data.")
 
 
-
 ###process image date
 # edited_date = image_date.strftime("%Y-%m-%d")
 # st.header("Edited Image Time")
@@ -37,4 +42,3 @@ with st.form("Edit Image Data", clear_on_submit=True):
 st.header("Edit Image GPS")
 st.subheader("Choose location on map")
 st.map()
-
