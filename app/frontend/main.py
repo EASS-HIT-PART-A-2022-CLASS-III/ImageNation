@@ -56,22 +56,6 @@ if uploaded_files:
 ################show image
 #st.image("ImgName.jpg", caption="Sunrise by the mountains", use_column_width=True)
 
-def get_images():
-    response = requests.get("http://localhost:8000/images")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
-
-
-################radio button to see uploaded images
-imageView_radioButton = st.radio("View images",options=["Show details Table", "Show small images", "Show images on map"] , on_change=None, index=0, key=None)
-
-################Show Specific details of uploaded images
-imageDetails_multiSelect = st.multiselect("Select which details to show", options=["name", "size", "phash", "gps", "datetime"])
-
-
 
 
 ################plot images on map################

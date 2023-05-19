@@ -1,6 +1,15 @@
 import streamlit as st
 import pandas as pd
 
+################removing streamlit buttom-logo
+st.markdown("""
+<style>
+.css-cio0dv.egzxvld1
+{
+    visibility: hidden;
+}
+</style>
+    """, unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align: center; color: red;'>Edit Image Data</h1>", unsafe_allow_html=True)
 with st.form("Edit Image Data", clear_on_submit=True):
@@ -18,11 +27,11 @@ with st.form("Edit Image Data", clear_on_submit=True):
 
 
 ###process image date
-edited_date = image_date.strftime("%Y-%m-%d")
-st.header("Edited Image Time")
-image_time = st.time_input("Image Time")
-edited_time = image_time.strftime("%H:%M:%S")
-edited_date_time = edited_date + " " + edited_time
+# edited_date = image_date.strftime("%Y-%m-%d")
+# st.header("Edited Image Time")
+# image_time = st.time_input("Image Time")
+# edited_time = image_time.strftime("%H:%M:%S")
+# edited_date_time = edited_date + " " + edited_time
 
 ###edit image gps by choosing location on map
 st.header("Edit Image GPS")
