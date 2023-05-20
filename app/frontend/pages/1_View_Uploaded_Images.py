@@ -10,6 +10,7 @@ from PIL import Image, ImageOps, ImageDraw
 import base64
 import hashlib
 import sys
+
 sys.path.append("..")
 from models import ImageModel
 from PIL import UnidentifiedImageError
@@ -59,7 +60,7 @@ def create_db_df(images_data):
 
 
 def view_images_content(df):
-    with st.spinner('Loading Data Frame please wait...'):
+    with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
         df = df.drop(columns="content")
         column_options = [col for col in df.columns if col != "name"]
@@ -74,7 +75,7 @@ def view_images_content(df):
         df.columns = [col.replace("gps.", "") for col in df.columns]
         temp_df = df[selected_columns]
         st.dataframe(temp_df)
-    st.success('Data Frame loaded!')
+    st.success("Data Frame loaded!")
 
 
 def decode_base64(encoded_str: str) -> bytes:
@@ -85,7 +86,7 @@ def decode_base64(encoded_str: str) -> bytes:
 
 def display_small_images(images_data):
     instractions_placeholder = st.empty()
-    with st.spinner('Loading Images...'):
+    with st.spinner("Loading Images..."):
         warnings = []
         images_per_row = 3
         num_images = len(images_data)
@@ -105,13 +106,19 @@ def display_small_images(images_data):
                                 image, caption=image_data["name"], use_column_width=True
                             )
                         except:
-                            warnings.append(f"Failed to display image: {image_data['name']}")
-                            #col.error(f"Failed to display image: {image_data['name']}")
+                            warnings.append(
+                                f"Failed to display image: {image_data['name']}"
+                            )
+                            # col.error(f"Failed to display image: {image_data['name']}")
                     else:
-                        warnings.append(f"Failed to decode image content: {image_data['name']}")
-                        #col.error(f"Failed to decode image content: {image_data['name']}")
-        st.success('Images loaded!')
-        instractions_placeholder.write(":green[press on the arrows on the top right corner to see the images in full size]")
+                        warnings.append(
+                            f"Failed to decode image content: {image_data['name']}"
+                        )
+                        # col.error(f"Failed to decode image content: {image_data['name']}")
+        st.success("Images loaded!")
+        instractions_placeholder.write(
+            ":green[press on the arrows on the top right corner to see the images in full size]"
+        )
         if warnings:
             for warning in warnings:
                 st.warning(warning)
@@ -122,8 +129,10 @@ def calculate_center(df):
     average_longitude = df["longitude"].mean()
     return [average_latitude, average_longitude]
 
+
 import folium
 from folium.plugins import PolyLineTextPath
+
 
 def process_image(row):
     name = row["name"]
@@ -151,15 +160,14 @@ def process_image(row):
     img.thumbnail(size, Image.ANTIALIAS)
     img = ImageOps.fit(img, mask.size, centering=(0.5, 0.5))
     img.putalpha(mask)
-    
+
     output = io.BytesIO()
     img.save(output, format="PNG")
     icon_data = base64.b64encode(output.getvalue()).decode()
     icon_url = f"data:image/png;base64,{icon_data}"
-    
+
     # Use the desired icon size
     icon = folium.CustomIcon(icon_url, icon_size=(40, 40))
-
 
     marker = folium.Marker(
         location=[latitude, longitude],
@@ -172,8 +180,9 @@ def process_image(row):
 
     return marker, name
 
+
 def plot_images_on_map(df):
-    with st.spinner('Loading Map please wait...'):
+    with st.spinner("Loading Map please wait..."):
         warnings = []
         center = calculate_center(df)
         if center is None:
@@ -194,12 +203,10 @@ def plot_images_on_map(df):
                 marker, name = result
                 marker.add_to(marker_cluster)
         folium_static(m)
-    st.success('Map loaded!')
+    st.success("Map loaded!")
     if warnings:
-            for warning in warnings:
-                st.warning(warning)
-    
-
+        for warning in warnings:
+            st.warning(warning)
 
 
 images_data = get_images()
@@ -210,4 +217,3 @@ elif imageView_radioButton == "Show small images":
     display_small_images(images_data)
 elif imageView_radioButton == "Show images on map":
     plot_images_on_map(df)
-    

@@ -10,7 +10,8 @@ import io
 from datetime import datetime
 import base64
 import sys
-sys.path.append("..") # to import from app.models
+
+sys.path.append("..")  # to import from app.models
 from models import ImageModel, GPS
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware

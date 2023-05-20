@@ -9,19 +9,23 @@ from PIL import Image
 import base64
 import hashlib
 import sys
+
 sys.path.append("..")
 from models import ImageModel
 
 st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
 ################removing streamlit buttom-logo
-st.markdown("""
+st.markdown(
+    """
 <style>
 .css-cio0dv.egzxvld1
 {
     visibility: hidden;
 }
 </style>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 ################Welcome To App
 st.title("ImagePlotter")
 st.header("Upload images to plot them on a map.")
@@ -31,8 +35,10 @@ st.markdown("---")
 ################Upload images
 
 
-uploaded_files = st.file_uploader("Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-with st.spinner('Uploading Images...'):
+uploaded_files = st.file_uploader(
+    "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
+)
+with st.spinner("Uploading Images..."):
     if uploaded_files:
         files_dict = []
         for uploaded_file in uploaded_files:
@@ -48,9 +54,6 @@ with st.spinner('Uploading Images...'):
             st.success("Successfully uploaded images.")
         else:
             st.error("Failed to upload images.")
-
-
-
 
 
 ################plot images on map################
