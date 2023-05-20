@@ -40,3 +40,4 @@ class SearchParams(BaseModel):
     delete: bool = False
     silent_del: bool = False
     logs: bool = False
+
