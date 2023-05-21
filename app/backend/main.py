@@ -296,20 +296,16 @@ async def update_image(image_name: str, image: ImageModel):
 async def patch_image(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-        
     stored_image_data = database.get(image_name)
-    
     if stored_image_data is not None:
         update_data = image.dict(exclude_unset=True)
-        
-        # Update the stored image data with the new values
         for field, value in update_data.items():
-            setattr(stored_image_data, field, value)
+            if value is not None:
+                setattr(stored_image_data, field, value)
         
         database[image_name] = stored_image_data
         
         return {"image": stored_image_data.dict()}
-    
     else:
         database[image_name] = image.dict()
         return {"status": "success", "message": f"{image_name} updated"}
