@@ -94,7 +94,7 @@ def edit_image_data(df):
         if image_bytes:
             try:
                 image = Image.open(io.BytesIO(image_bytes))
-                caption = selected_image_data["name"] + " " + selected_image_data["country"]
+                caption = f"{selected_image_data['name']} - Image Location: {selected_image_data['country']}"
                 st.image(
                 image, caption=caption , use_column_width=True
                   )

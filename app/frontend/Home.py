@@ -28,29 +28,8 @@ st.markdown(
 )
 ################Welcome To App
 st.title("ImagePlotter")
-st.header("Upload images to plot them on a map.")
 st.markdown("---")
-
-
-################Upload images
-
-
-uploaded_files = st.file_uploader(
-    "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
-)
-with st.spinner("Uploading Images..."):
-    if uploaded_files:
-        files_dict = []
-        for uploaded_file in uploaded_files:
-            file_bytes = io.BytesIO(uploaded_file.read())
-            files_dict.append(
-                ("images", (uploaded_file.name, file_bytes, uploaded_file.type))
-            )
-        response = requests.post(
-            "http://localhost:8000/images/",
-            files=files_dict,
-        )
-        if response.status_code == 201:
-            st.success("Successfully uploaded images.")
-        else:
-            st.error("Failed to upload images.")
+st.write("Welcome to my app!")
+st.write("This is the landing page.")
+st.write("Please navigate to the desired section using the sidebar.")
+st.write("Enjoy!")

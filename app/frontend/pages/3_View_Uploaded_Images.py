@@ -180,7 +180,7 @@ def plot_images_on_map(df):
             else:
                 marker, name = result
                 marker.add_to(marker_cluster)
-        folium_static(m,width=950,height=600)
+        folium_static(m,width=900,height=600)
     st.success("Map loaded!")
     if warnings:
         for warning in warnings:
