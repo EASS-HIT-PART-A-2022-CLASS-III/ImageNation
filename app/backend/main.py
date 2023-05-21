@@ -4,7 +4,7 @@ import time
 from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Tuple, Union
 from imagededup.methods import PHash
-from PIL import Image
+from PIL import Image, ImageOps, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
@@ -148,7 +148,6 @@ async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, da
             status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="error when parsing gps and date",
         )
-        return None, None, None, None
 
 
 async def calculate_phash_value(image_data: bytes) -> str:
@@ -167,21 +166,54 @@ async def calculate_phash_value(image_data: bytes) -> str:
             shutil.os.remove(path)
     return result
 
+def make_round(image, size=(40, 40), border=5, fill_color='white'):
+    image = image.resize(size, Image.LANCZOS)
+    result = Image.new('RGBA', (size[0]+border*2, size[1]+border*2))
+    mask = Image.new('L', size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0) + size, fill=255)
+    result.paste(image, (border, border), mask=mask)
+    draw = ImageDraw.Draw(result)
+    draw.ellipse((0, 0, result.size[0]-1, result.size[1]-1), outline=fill_color, width=border)
+
+    return result
+
+async def process_small_image_data(image_data: bytes) -> bytes:
+    try:
+        with Image.open(io.BytesIO(image_data)) as img:
+    
+            processed_img = make_round(img)
+            byte_arr = io.BytesIO()
+            processed_img.save(byte_arr, format='PNG')
+            return byte_arr.getvalue()
+    except Exception as e:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="error when processing small image",
+        )
+
 
 async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
     image_data = await read_image_data(image)
     phash_value = await calculate_phash_value(image_data)
     lat, lon, alt, country, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, country=country)
+    file_size = float(len(image_data))
     image_encoded = encode_base64(image_data)
+    small_image_data = await process_small_image_data(image_data)
+    small_round_image = encode_base64(small_image_data)
     image_obj = ImageModel(
         name=image.filename,
         phash=phash_value,
+        size=file_size,
         gps=gps_data.dict(),
         date=date,
         content=image_encoded,
+        smallRoundContent=small_round_image,
     )
     return image_obj
+
+
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
@@ -264,17 +296,23 @@ async def update_image(image_name: str, image: ImageModel):
 async def patch_image(image_name: str, image: ImageModel):
     if image_name not in database:
         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
+        
     stored_image_data = database.get(image_name)
+    
     if stored_image_data is not None:
-        stored_image_model = ImageModel(**stored_image_data)
         update_data = image.dict(exclude_unset=True)
-        update_image = stored_image_model.copy(update=update_data)
-        update_image_encoded = jsonable_encoder(update_image)
-        database[image_name] = update_image_encoded
-        return {"image": update_image_encoded}
+        
+        # Update the stored image data with the new values
+        for field, value in update_data.items():
+            setattr(stored_image_data, field, value)
+        
+        database[image_name] = stored_image_data
+        
+        return {"image": stored_image_data.dict()}
+    
     else:
-        database[image_name] = image
-    return {"status": "success", "message": f"{image_name} updated"}
+        database[image_name] = image.dict()
+        return {"status": "success", "message": f"{image_name} updated"}
 
 
 async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:

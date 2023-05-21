@@ -10,13 +10,16 @@ from PIL import Image, ImageOps, ImageDraw
 import base64
 import hashlib
 import sys
-
 sys.path.append("..")
 from models import ImageModel
 from PIL import UnidentifiedImageError
 from concurrent.futures import ThreadPoolExecutor
 import folium
 from folium.plugins import PolyLineTextPath
+from PIL import Image
+import io
+
+
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
 ################removing streamlit buttom-logo
@@ -54,7 +57,8 @@ def get_images():
 
 def create_db_df(images_data):
     df = pd.json_normalize(images_data)
-    df = df.drop(columns="gps")
+    if 'gps' in df.columns:
+        df = df.drop(columns='gps')
     df.columns = [col.replace("gps.", "") for col in df.columns]
     return df
 
@@ -62,13 +66,14 @@ def create_db_df(images_data):
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-        df = df.drop(columns="content")
+        df = df.drop(columns=["content", "smallRoundContent"])
         column_options = [col for col in df.columns if col != "name"]
         imageDetails_multiSelect = st.multiselect(
             ":red[Select which details to show]",
             options=column_options,
             default=column_options,
         )
+        st.write("press artibute name to sort by it.")
         selected_columns = ["name"] + [
             col.replace("gps.", "") for col in imageDetails_multiSelect
         ]
@@ -129,54 +134,27 @@ def calculate_center(df):
     average_longitude = df["longitude"].mean()
     return [average_latitude, average_longitude]
 
-
-import folium
-from folium.plugins import PolyLineTextPath
-
-
 def process_image(row):
     name = row["name"]
     date = row["date"]
+    encoded_small_content = row.get("smallRoundContent")
+    if pd.isnull(encoded_small_content):
+        return f"Skipping image '{name}' due to missing small content."
     encoded_content = row.get("content")
     if pd.isnull(encoded_content):
         return f"Skipping image '{name}' due to missing content."
-    image_bytes = decode_base64(encoded_content)
-    if image_bytes is None:
-        return f"Failed to decode image content for '{name}'."
     latitude = row.get("latitude")
     longitude = row.get("longitude")
     if pd.isnull(latitude) or pd.isnull(longitude):
         return f"Skipping image '{name}' due to missing GPS coordinates."
-
-    try:
-        img = Image.open(io.BytesIO(image_bytes))
-    except:
-        return f"Failed to open image '{name}'."
-
-    size = (40, 40)  # Increase the size of the mask
-    mask = Image.new("L", size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0) + size, fill=255)
-    img.thumbnail(size, Image.ANTIALIAS)
-    img = ImageOps.fit(img, mask.size, centering=(0.5, 0.5))
-    img.putalpha(mask)
-
-    output = io.BytesIO()
-    img.save(output, format="PNG")
-    icon_data = base64.b64encode(output.getvalue()).decode()
-    icon_url = f"data:image/png;base64,{icon_data}"
-
-    # Use the desired icon size
+    icon_url = f"data:image/png;base64,{encoded_small_content}"
     icon = folium.CustomIcon(icon_url, icon_size=(40, 40))
-
+    popup_html = f'<p style="text-align:center;"><b>{name}, {date}</b><br><img src="data:image/jpeg;base64,{encoded_content}" style="max-height:200px; max-width:200px;"></p>'
     marker = folium.Marker(
         location=[latitude, longitude],
         icon=icon,
+        popup=folium.Popup(popup_html, max_width=300),
     )
-
-    popup_html = f'<p style="text-align:center;"><b>{name,date}</b><br><img src="data:image/jpeg;base64,{encoded_content}" style="max-height:200px; max-width:200px;"></p>'
-
-    folium.Popup(popup_html, max_width=300).add_to(marker)
 
     return marker, name
 
@@ -202,7 +180,7 @@ def plot_images_on_map(df):
             else:
                 marker, name = result
                 marker.add_to(marker_cluster)
-        folium_static(m)
+        folium_static(m,width=950,height=600)
     st.success("Map loaded!")
     if warnings:
         for warning in warnings:

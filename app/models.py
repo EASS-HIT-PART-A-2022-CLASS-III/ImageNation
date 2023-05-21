@@ -5,18 +5,22 @@ from pydantic import BaseModel, DirectoryPath, Field
 
 
 class GPS(BaseModel):
+    country: str | None = Field(None, example="Israel")
+    altitude: float | None = Field(None, example=0.0)
     latitude: float | None = Field(None, example=0.0)
     longitude: float | None = Field(None, example=0.0)
-    altitude: float | None = Field(None, example=0.0)
-    country: str | None = Field(None, example="Israel")
+    
+    
 
 
 class ImageModel(BaseModel):
     name: str = Field(..., example="image.jpg")
     phash: str = Field(None, example="0000000000000000")
+    size: float = Field(None, example=0.0)
     gps: GPS | None = Field(None)
     date: datetime | None = Field(None, example="2021-01-01 00:00:00")
-    content: str | None = Field(None, example="kjhfdfasf")
+    content: str | None = Field(None, example="ThisIsAnImageInBase64Format")
+    smallRoundContent: str | None = Field(None, example="ThisIsASmallRoundImageInBase64Format")
 
 
 class DateTimeEncoder(json.JSONEncoder):

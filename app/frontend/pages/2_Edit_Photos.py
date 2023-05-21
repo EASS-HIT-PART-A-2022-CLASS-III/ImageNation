@@ -1,11 +1,11 @@
 import base64
+import json
 import requests
 import streamlit as st
 import pandas as pd
-import datetime
+from datetime import datetime, date, time
 import folium
 from streamlit_folium import folium_static
-import datetime
 import streamlit as st
 import numpy as np
 from geopy import Point
@@ -13,6 +13,10 @@ from geopy.geocoders import Nominatim
 import base64
 from PIL import Image
 import io
+import sys
+sys.path.append("../..")  # to import from app.models
+
+from app.models import GPS, ImageModel, DateTimeEncoder
 
 
 
@@ -44,10 +48,11 @@ def get_images():
     else:
         st.error("Failed to retrieve images.")
         return []
-    
+
 def create_db_df(images_data):
     df = pd.json_normalize(images_data)
-    df = df.drop(columns="gps")
+    if 'gps' in df.columns:
+        df = df.drop(columns='gps')
     df.columns = [col.replace("gps.", "") for col in df.columns]
     return df
 
@@ -86,8 +91,13 @@ def edit_image_data(df):
 
         image_name_input = st.text_input("Image Name", selected_image_data["name"])
         col1, col2 = st.columns(2)
-        selected_date = datetime.datetime.strptime(selected_image_data["date"], "%Y-%m-%dT%H:%M:%S").date()
-        selected_time = datetime.datetime.strptime(selected_image_data["date"], "%Y-%m-%dT%H:%M:%S").time()
+        selected_date = date(2000, 1, 1)  # Default date
+        selected_time = time(12, 0, 0)  # Default time
+
+        if selected_image_data["date"]:
+            selected_datetime = datetime.strptime(selected_image_data["date"], "%Y-%m-%dT%H:%M:%S")
+            selected_date = selected_datetime.date()
+            selected_time = selected_datetime.time()
         new_date = col1.date_input("Image Date", selected_date)
         new_time = col2.time_input("Image Time", selected_time)
         new_latitude = col1.number_input("Image Latitude", value=selected_image_data["latitude"])
@@ -123,9 +133,25 @@ def edit_image_data(df):
                     image_name_input == selected_image_data["name"]
                     and new_date == selected_date
                     and new_time == selected_time
+                    and marker.location[0] == selected_image_data["latitude"]
+                    and marker.location[1] == selected_image_data["longitude"]
                 ):
                     st.warning("No changes were made to the image data.")
                 else:
-                    st.success("Successfully edited image data.")
+                    new_datetime = datetime.combine(new_date, new_time)
+                    new_gps = GPS(latitude=marker.location[0], longitude=marker.location[1])
+                    new_image_data = ImageModel(
+                        name=image_name_input,
+                        date=new_datetime,
+                        gps=new_gps,
+                    )
+                    response = requests.patch(
+                        f"http://localhost:8000/patchImage/{selected_image_data['name']}",
+                        data=new_image_data.json(),
+                    )
+                    if response.status_code == 202:
+                        st.success("Successfully edited image data.")
+                    else:
+                        st.error("Failed to edit image data.")
         
 edit_image_data(df)
