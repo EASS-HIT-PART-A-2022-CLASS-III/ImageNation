@@ -3,11 +3,11 @@ from fastapi.encoders import jsonable_encoder
 import json
 from fastapi import status
 import pytest
-from app.backend.models import GPS, ImageModel, DateTimeEncoder
+from app.models import DateTimeEncoder
 from main import app
 import os
 from PIL.ExifTags import TAGS, GPSTAGS
-from datetime import datetime, date
+from datetime import datetime
 
 
 client = TestClient(app=app)
@@ -50,7 +50,6 @@ def test_get_images():
     assert response.status_code == 200
     images = response.json()
     assert len(images) > 0
-    # assert test_image_name in [image["name"] for image in images]
 
 
 def test_delete_image():
@@ -65,7 +64,7 @@ def test_delete_image():
 def test_find_duplicate():
     with pytest.warns(
         RuntimeWarning, match="Parameter num_enc_workers has no effect"
-    ):  # ignore warning
+    ):
         response = client.get("/findDuplicateImages")
     assert response.status_code == 200
     assert "image7.jpg" in response.json()["duplicates"]

@@ -1,11 +1,13 @@
 FROM python:3.10
 
-WORKDIR /myImages
+WORKDIR /myImages/app/backend
 
-COPY ./requirements.txt myImages/requirements.txt
+COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade -r myImages/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-COPY . /myImages/
+COPY . .
 
 CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8800"]
+
+
