@@ -14,10 +14,8 @@ import base64
 from PIL import Image
 import io
 import sys
-
-sys.path.append("../..")  # to import from app.models
-
-from app.models import GPS, ImageModel, DateTimeEncoder
+from app.models import GPS, ImageModel
+from app.utils import get_images, create_db_df, decode_base64, get_country_name
 
 
 st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
@@ -38,45 +36,8 @@ st.markdown(
 )
 
 
-def get_images():
-    response = requests.get("http://localhost:8000/images")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
-
-
-def create_db_df(images_data):
-    df = pd.json_normalize(images_data)
-    if "gps" in df.columns:
-        df = df.drop(columns="gps")
-    df.columns = [col.replace("gps.", "") for col in df.columns]
-    return df
-
-
 images_data = get_images()
 df = create_db_df(images_data)
-
-
-def decode_base64(encoded_str: str) -> bytes:
-    if encoded_str is not None:
-        return base64.b64decode(encoded_str.encode("ascii"))
-    return b""
-
-
-def get_country_name(latitude: float, longitude: float) -> str:
-    try:
-        geolocator = Nominatim(user_agent="geoapiExercises")
-        point = Point(latitude, longitude)
-        location = geolocator.reverse(point, exactly_one=True, language="en")
-        address = location.raw.get("address")
-        if address and "country" in address:
-            return address["country"]
-    except:
-        pass
-
-    return None
 
 
 ###################################################################################

@@ -1,17 +1,7 @@
 import streamlit as st
-import pandas as pd
 import requests
-import folium
-from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
 import io
-from PIL import Image
-import base64
-import hashlib
-import sys
 
-sys.path.append("..")
-from models import ImageModel
 
 st.set_page_config(page_title="Image Uploadung", page_icon="📮")
 st.markdown(
@@ -28,8 +18,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown("---")
-################Welcome To App
-################Upload images
 st.header("Upload images to the Database")
 
 

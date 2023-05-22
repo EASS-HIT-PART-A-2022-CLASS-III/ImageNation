@@ -10,9 +10,14 @@ from PIL import Image, ImageOps, ImageDraw
 import base64
 import hashlib
 import sys
-
-sys.path.append("..")
-from models import ImageModel
+from app.models import ImageModel
+from app.utils import (
+    get_images,
+    create_db_df,
+    decode_base64,
+    get_duplicates,
+    delete_image,
+)
 from PIL import UnidentifiedImageError
 from concurrent.futures import ThreadPoolExecutor
 import folium
@@ -37,33 +42,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown("---")
-
-
-def get_images():
-    response = requests.get("http://localhost:8000/images")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
-
-
-def get_duplicates():
-    response = requests.get("http://localhost:8000/findDuplicateImages")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
-
-
-def delete_image(image_name):
-    response = requests.delete(f"http://localhost:8000/deleteImage/{image_name}")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to delete image: {image_name}")
-        return None
 
 
 get_duplicates_button = st.button("Press to find Duplicates")

@@ -4,19 +4,14 @@ import time
 from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Tuple, Union
 from imagededup.methods import PHash
-from PIL import Image, ImageOps, ImageDraw
+from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
-import base64
-import sys
-
-sys.path.append("..")  # to import from app.models
-from models import ImageModel, GPS
+from app.models import ImageModel, GPS
+from app.utils import get_country_name, encode_base64
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware
-from geopy import Point
-from geopy.geocoders import Nominatim
 
 
 app = FastAPI(title="ImagePlotter", version="0.1.0")
@@ -86,28 +81,6 @@ async def extract_gps_data_and_convert_to_decimal(
         return lat, lon, alt, country
     else:
         return None, None, None, None
-
-
-def get_country_name(latitude: float, longitude: float) -> str:
-    try:
-        geolocator = Nominatim(user_agent="geoapiExercises")
-        point = Point(latitude, longitude)
-        location = geolocator.reverse(point, exactly_one=True, language="en")
-        address = location.raw.get("address")
-        if address and "country" in address:
-            return address["country"]
-    except:
-        pass
-
-    return None
-
-
-def encode_base64(byte_array: bytes) -> str:
-    return base64.b64encode(byte_array).decode("ascii")
-
-
-def decode_base64(encoded_str: str) -> bytes:
-    return base64.b64decode(encoded_str.encode("ascii"))
 
 
 async def read_image_data(file: UploadFile) -> bytes:
@@ -258,14 +231,6 @@ async def upload_and_calculate_phash(images: List[UploadFile] = File(...)):
         if image_obj:
             database[image_obj.name] = image_obj
     return {"status": "success", "message": f"{len(images)} images uploaded"}
-
-
-# # @app.get("/images/{image_name}", response_model=ImageModel, response_description="The image", status_code=status.HTTP_200_OK)
-# # async def get_image(image_name: str):
-# #     if image_name not in database:
-# #         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-# #     image_obj = ImageModel(**database[image_name])
-#     return {"image": image_obj}
 
 
 @app.get(
