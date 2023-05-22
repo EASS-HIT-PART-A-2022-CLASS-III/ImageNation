@@ -62,9 +62,7 @@ def test_delete_image():
 
 
 def test_find_duplicate():
-    with pytest.warns(
-        RuntimeWarning, match="Parameter num_enc_workers has no effect"
-    ):
+    with pytest.warns(RuntimeWarning, match="Parameter num_enc_workers has no effect"):
         response = client.get("/findDuplicateImages")
     assert response.status_code == 200
     assert "image7.jpg" in response.json()["duplicates"]

@@ -1,26 +1,19 @@
-import base64
-import json
-import requests
 import streamlit as st
-import pandas as pd
+import requests
 from datetime import datetime, date, time
 import folium
 from streamlit_folium import folium_static
 import streamlit as st
 import numpy as np
-from geopy import Point
-from geopy.geocoders import Nominatim
 import base64
 from PIL import Image
 import io
-import sys
 from app.models import GPS, ImageModel
 from app.utils import get_images, create_db_df, decode_base64, get_country_name
 
 
 st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
 
-################removing streamlit buttom-logo
 st.markdown(
     """
     <style>
@@ -112,7 +105,6 @@ def edit_image_data(df):
             st.write(marker.location[1])
 
             form_state = st.form_submit_button("Submit")
-
             if form_state:
                 if (
                     image_name_input == selected_image_data["name"]
@@ -123,29 +115,28 @@ def edit_image_data(df):
                 ):
                     st.warning("No changes were made to the image data.")
                 else:
-                    new_datetime = datetime.combine(new_date, new_time)
+                    new_datetime = datetime.combine(new_date, new_time).isoformat()
+                    new_gps = None
                     if (
                         marker.location[0] != selected_image_data["latitude"]
                         or marker.location[1] != selected_image_data["longitude"]
                     ):
-                        new_gps = GPS(
-                            latitude=marker.location[0],
-                            longitude=marker.location[1],
-                            altitude=selected_image_data["altitude"],
-                            country=get_country_name(
+                        new_gps = {
+                            "latitude": marker.location[0],
+                            "longitude": marker.location[1],
+                            "altitude": selected_image_data["altitude"],
+                            "country": get_country_name(
                                 marker.location[0], marker.location[1]
                             ),
-                        )
-                    else:
-                        new_gps = None
-                    new_image_data = ImageModel(
-                        name=image_name_input,
-                        date=new_datetime,
-                        gps=new_gps,
-                    )
+                        }
+                    new_image_data = {
+                        "name": image_name_input,
+                        "date": new_datetime,
+                        "gps": new_gps,
+                    }
                     response = requests.patch(
                         f"http://localhost:8000/patchImage/{selected_image_data['name']}",
-                        data=new_image_data.json(),
+                        json=new_image_data,
                     )
                     if response.status_code == 202:
                         st.success("Successfully edited image data.")

@@ -1,3 +1,4 @@
+import base64
 from fastapi import FastAPI, File, Request, UploadFile, HTTPException, status
 import shutil
 import time
@@ -8,10 +9,11 @@ from PIL import Image, ImageDraw
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
-from app.models import ImageModel, GPS
-from app.utils import get_country_name, encode_base64
+from models import ImageModel, GPS
 import tempfile
 from starlette.middleware.base import BaseHTTPMiddleware
+from geopy import Point
+from geopy.geocoders import Nominatim
 
 
 app = FastAPI(title="ImagePlotter", version="0.1.0")
@@ -81,6 +83,30 @@ async def extract_gps_data_and_convert_to_decimal(
         return lat, lon, alt, country
     else:
         return None, None, None, None
+
+
+def decode_base64(encoded_str: str) -> bytes:
+    if encoded_str is not None:
+        return base64.b64decode(encoded_str.encode("ascii"))
+    return b""
+
+
+def encode_base64(byte_array: bytes) -> str:
+    return base64.b64encode(byte_array).decode("ascii")
+
+
+def get_country_name(latitude: float, longitude: float) -> str:
+    try:
+        geolocator = Nominatim(user_agent="geoapiExercises")
+        point = Point(latitude, longitude)
+        location = geolocator.reverse(point, exactly_one=True, language="en")
+        address = location.raw.get("address")
+        if address and "country" in address:
+            return address["country"]
+    except:
+        pass
+
+    return None
 
 
 async def read_image_data(file: UploadFile) -> bytes:
