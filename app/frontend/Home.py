@@ -15,11 +15,12 @@ from models import ImageModel
 
 st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
 
+
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
     st.markdown(
-    f"""
+        f"""
     <style>
     .stApp {{
         background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
@@ -41,20 +42,19 @@ def add_bg_from_local(image_file):
     </h2>
     
     """,
-    unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
-add_bg_from_local('backgrond_Image.jpg')    
+
+
+add_bg_from_local("backgrond_Image.jpg")
 
 
 ################Welcome To App
-#st.title("Welcom To :blue[IMAGE-NATION] 🌍")
-#st.subheader(":green[Are you ready to re-explore the world?] 🛺")
+# st.title("Welcom To :blue[IMAGE-NATION] 🌍")
+# st.subheader(":green[Are you ready to re-explore the world?] 🛺")
 st.markdown("---")
 st.write("Welcome to my app!")
 st.write("This is the landing page.")
 st.write("Please navigate to the desired section using the sidebar.")
 st.write("Enjoy!")
-#st.image('backgrond_Image.jpg')
-
-
-
+# st.image('backgrond_Image.jpg')

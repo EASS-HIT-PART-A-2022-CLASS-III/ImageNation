@@ -14,11 +14,10 @@ import base64
 from PIL import Image
 import io
 import sys
+
 sys.path.append("../..")  # to import from app.models
 
 from app.models import GPS, ImageModel, DateTimeEncoder
-
-
 
 
 st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
@@ -47,20 +46,24 @@ def get_images():
         st.error("Failed to retrieve images.")
         return []
 
+
 def create_db_df(images_data):
     df = pd.json_normalize(images_data)
-    if 'gps' in df.columns:
-        df = df.drop(columns='gps')
+    if "gps" in df.columns:
+        df = df.drop(columns="gps")
     df.columns = [col.replace("gps.", "") for col in df.columns]
     return df
 
+
 images_data = get_images()
 df = create_db_df(images_data)
+
 
 def decode_base64(encoded_str: str) -> bytes:
     if encoded_str is not None:
         return base64.b64decode(encoded_str.encode("ascii"))
     return b""
+
 
 def get_country_name(latitude: float, longitude: float) -> str:
     try:
@@ -74,6 +77,7 @@ def get_country_name(latitude: float, longitude: float) -> str:
         pass
 
     return None
+
 
 ###################################################################################
 def edit_image_data(df):
@@ -93,35 +97,40 @@ def edit_image_data(df):
             try:
                 image = Image.open(io.BytesIO(image_bytes))
                 caption = f"{selected_image_data['name']} - Image Location: {selected_image_data['country']}"
-                col1,col2,col3 = st.columns(3)
-                col2.image(
-                image, caption=caption , use_column_width=True
-                  )
+                col1, col2, col3 = st.columns(3)
+                col2.image(image, caption=caption, use_column_width=True)
             except:
                 pass
 
         image_name_input = st.text_input("Image Name", selected_image_data["name"])
         col1, col2 = st.columns(2)
         if selected_image_data["date"]:
-            selected_datetime = datetime.strptime(selected_image_data["date"], "%Y-%m-%dT%H:%M:%S")
+            selected_datetime = datetime.strptime(
+                selected_image_data["date"], "%Y-%m-%dT%H:%M:%S"
+            )
             selected_date = selected_datetime.date()
             selected_time = selected_datetime.time()
         else:
-            selected_date = date(2000, 1, 1)  
-            selected_time = time(12, 0, 0)  
+            selected_date = date(2000, 1, 1)
+            selected_time = time(12, 0, 0)
         new_date = col1.date_input("Image Date", selected_date)
         new_time = col2.time_input("Image Time", selected_time)
         if selected_image_data["latitude"] and selected_image_data["longitude"]:
-            new_latitude = col1.number_input("Image Latitude", value=selected_image_data["latitude"])
-            new_longitude = col2.number_input("Image Longitude", value=selected_image_data["longitude"])
+            new_latitude = col1.number_input(
+                "Image Latitude", value=selected_image_data["latitude"]
+            )
+            new_longitude = col2.number_input(
+                "Image Longitude", value=selected_image_data["longitude"]
+            )
         else:
             new_latitude = col1.number_input("Image Latitude", value=0.0)
             new_longitude = col2.number_input("Image Longitude", value=0.0)
         zoom_level = 13
-        
+
         lat = float(np.nan_to_num(new_latitude, nan=0))
         lon = float(np.nan_to_num(new_longitude, nan=0))
-        m = folium.Map(location=[lat, lon],
+        m = folium.Map(
+            location=[lat, lon],
             zoom_start=zoom_level,
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             attr="Esri",
@@ -154,10 +163,20 @@ def edit_image_data(df):
                     st.warning("No changes were made to the image data.")
                 else:
                     new_datetime = datetime.combine(new_date, new_time)
-                    if marker.location[0] != selected_image_data["latitude"] or marker.location[1] != selected_image_data["longitude"]:
-                        new_gps = GPS(latitude=marker.location[0], longitude=marker.location[1], altitude=selected_image_data["altitude"], country=get_country_name(marker.location[0], marker.location[1]))
+                    if (
+                        marker.location[0] != selected_image_data["latitude"]
+                        or marker.location[1] != selected_image_data["longitude"]
+                    ):
+                        new_gps = GPS(
+                            latitude=marker.location[0],
+                            longitude=marker.location[1],
+                            altitude=selected_image_data["altitude"],
+                            country=get_country_name(
+                                marker.location[0], marker.location[1]
+                            ),
+                        )
                     else:
-                        new_gps = None    
+                        new_gps = None
                     new_image_data = ImageModel(
                         name=image_name_input,
                         date=new_datetime,
@@ -171,5 +190,6 @@ def edit_image_data(df):
                         st.success("Successfully edited image data.")
                     else:
                         st.error("Failed to edit image data.")
-        
+
+
 edit_image_data(df)

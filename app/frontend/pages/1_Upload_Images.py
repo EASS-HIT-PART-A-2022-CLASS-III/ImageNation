@@ -9,6 +9,7 @@ from PIL import Image
 import base64
 import hashlib
 import sys
+
 sys.path.append("..")
 from models import ImageModel
 
@@ -54,9 +55,11 @@ if upload_button:
                 files=files_dict,
             )
             if response.status_code == 201:
-                col1.image('great_succes.gif', use_column_width=True)
-                col3.image('great_succes.gif', use_column_width=True)
-                col2.success(f"Successfully uploaded {len(uploaded_files)} images, see below the uploaded images.")
+                col1.image("great_succes.gif", use_column_width=True)
+                col3.image("great_succes.gif", use_column_width=True)
+                col2.success(
+                    f"Successfully uploaded {len(uploaded_files)} images, see below the uploaded images."
+                )
                 cols = st.columns(3)
                 for i, file in enumerate(uploaded_files):
                     cols[i % 3].image(file, width=150, caption=file.name)

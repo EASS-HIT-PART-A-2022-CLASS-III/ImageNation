@@ -9,8 +9,6 @@ class GPS(BaseModel):
     altitude: float | None = Field(None, example=0.0)
     latitude: float | None = Field(None, example=0.0)
     longitude: float | None = Field(None, example=0.0)
-    
-    
 
 
 class ImageModel(BaseModel):
@@ -20,7 +18,9 @@ class ImageModel(BaseModel):
     gps: GPS | None = Field(None)
     date: datetime | None = Field(None, example="2021-01-01 00:00:00")
     content: str | None = Field(None, example="ThisIsAnImageInBase64Format")
-    smallRoundContent: str | None = Field(None, example="ThisIsASmallRoundImageInBase64Format")
+    smallRoundContent: str | None = Field(
+        None, example="ThisIsASmallRoundImageInBase64Format"
+    )
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -44,4 +44,3 @@ class SearchParams(BaseModel):
     delete: bool = False
     silent_del: bool = False
     logs: bool = False
-

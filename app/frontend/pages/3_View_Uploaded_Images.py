@@ -10,6 +10,7 @@ from PIL import Image, ImageOps, ImageDraw
 import base64
 import hashlib
 import sys
+
 sys.path.append("..")
 from models import ImageModel
 from PIL import UnidentifiedImageError
@@ -18,7 +19,6 @@ import folium
 from folium.plugins import PolyLineTextPath
 from PIL import Image
 import io
-
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
@@ -55,8 +55,8 @@ def get_images():
 
 def create_db_df(images_data):
     df = pd.json_normalize(images_data)
-    if 'gps' in df.columns:
-        df = df.drop(columns='gps')
+    if "gps" in df.columns:
+        df = df.drop(columns="gps")
     df.columns = [col.replace("gps.", "") for col in df.columns]
     return df
 
@@ -86,11 +86,12 @@ def decode_base64(encoded_str: str) -> bytes:
         return base64.b64decode(encoded_str.encode("ascii"))
     return b""
 
+
 def display_small_images(images_data):
     instractions_placeholder = st.empty()
     with st.spinner("Loading Images..."):
         warnings = []
-        cols = st.columns(3) 
+        cols = st.columns(3)
         for i, image_data in enumerate(images_data):
             encoded_content = image_data["content"]
             image_bytes = decode_base64(encoded_content)
@@ -99,15 +100,11 @@ def display_small_images(images_data):
                     image = Image.open(io.BytesIO(image_bytes))
                     cols[i % 3].image(
                         image, caption=image_data["name"], use_column_width=True
-                    ) 
-                except:
-                    warnings.append(
-                        f"Failed to display image: {image_data['name']}"
                     )
+                except:
+                    warnings.append(f"Failed to display image: {image_data['name']}")
             else:
-                warnings.append(
-                    f"Failed to decode image content: {image_data['name']}"
-                )
+                warnings.append(f"Failed to decode image content: {image_data['name']}")
         st.success("Images loaded!")
         instractions_placeholder.write(
             ":green[press on the arrows on the top right corner to see the images in full size]"
@@ -115,10 +112,13 @@ def display_small_images(images_data):
         if warnings:
             for warning in warnings:
                 st.warning(warning)
+
+
 def calculate_center(df):
     average_latitude = df["latitude"].mean()
     average_longitude = df["longitude"].mean()
     return [average_latitude, average_longitude]
+
 
 def process_image(row):
     name = row["name"]
@@ -166,7 +166,7 @@ def plot_images_on_map(df):
             else:
                 marker, name = result
                 marker.add_to(marker_cluster)
-        folium_static(m,width=900,height=600)
+        folium_static(m, width=900, height=600)
     st.success("Map loaded!")
     if warnings:
         for warning in warnings:
