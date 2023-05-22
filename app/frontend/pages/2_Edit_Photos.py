@@ -38,10 +38,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown(
-    "",
-    unsafe_allow_html=True,
-)
 
 def get_images():
     response = requests.get("http://localhost:8000/images")
@@ -97,7 +93,8 @@ def edit_image_data(df):
             try:
                 image = Image.open(io.BytesIO(image_bytes))
                 caption = f"{selected_image_data['name']} - Image Location: {selected_image_data['country']}"
-                st.image(
+                col1,col2,col3 = st.columns(3)
+                col2.image(
                 image, caption=caption , use_column_width=True
                   )
             except:

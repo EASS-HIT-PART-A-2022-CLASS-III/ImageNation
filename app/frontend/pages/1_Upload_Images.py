@@ -26,20 +26,19 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
+st.markdown("---")
 ################Welcome To App
 ################Upload images
 st.header("Upload images to the Database")
-st.markdown("---")
 
-col1, col2 = st.columns(2)
-uploaded_files = col1.file_uploader(
+
+uploaded_files = st.file_uploader(
     "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
 
+col1, col2, col3 = st.columns(3)
 
-
-upload_button = col1.button("Upload Images")
+upload_button = col2.button("Upload Images")
 
 if upload_button:
     with st.spinner("Uploading Images..."):
@@ -55,11 +54,11 @@ if upload_button:
                 files=files_dict,
             )
             if response.status_code == 201:
-                col2.image('great_succes.gif', use_column_width=True)
-                st.success(f"Successfully uploaded {len(uploaded_files)} images")
-                cols = st.columns(len(uploaded_files))
+                col1.image('great_succes.gif', use_column_width=True)
+                col3.image('great_succes.gif', use_column_width=True)
+                col2.success(f"Successfully uploaded {len(uploaded_files)} images, see below the uploaded images.")
+                cols = st.columns(3)
                 for i, file in enumerate(uploaded_files):
-                    cols[i].image(file, width=150)
-                
+                    cols[i % 3].image(file, width=150, caption=file.name)
             else:
                 st.error("Failed to upload images.")

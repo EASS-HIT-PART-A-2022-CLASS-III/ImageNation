@@ -36,6 +36,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+st.markdown("---")
 
 def get_images():
     response = requests.get("http://localhost:8000/images")
@@ -52,3 +53,5 @@ def get_duplicates():
     else:
         st.error("Failed to retrieve images.")
         return []
+
+st.write(get_duplicates())

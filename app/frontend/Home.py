@@ -40,7 +40,7 @@ add_bg_from_local('backgrond_Image.jpg')
 
 ################Welcome To App
 st.title("Welcom To :blue[IMAGE-NATION] 🌍")
-st.subheader("Are you ready to re-explore the world? 🛺")
+st.subheader(":green[Are you ready to re-explore the world?] 🛺")
 st.markdown("---")
 st.write("Welcome to my app!")
 st.write("This is the landing page.")

@@ -85,39 +85,28 @@ def decode_base64(encoded_str: str) -> bytes:
     if encoded_str is not None:
         return base64.b64decode(encoded_str.encode("ascii"))
     return b""
-
-
 def display_small_images(images_data):
     instractions_placeholder = st.empty()
     with st.spinner("Loading Images..."):
         warnings = []
-        images_per_row = 3
-        num_images = len(images_data)
-        num_rows = (num_images + images_per_row - 1) // images_per_row
-        for row in range(num_rows):
-            cols = st.columns(images_per_row)
-            for col_index, col in enumerate(cols):
-                image_index = row * images_per_row + col_index
-                if image_index < num_images:
-                    image_data = images_data[image_index]
-                    encoded_content = image_data["content"]
-                    image_bytes = decode_base64(encoded_content)
-                    if image_bytes:
-                        try:
-                            image = Image.open(io.BytesIO(image_bytes))
-                            col.image(
-                                image, caption=image_data["name"], use_column_width=True
-                            )
-                        except:
-                            warnings.append(
-                                f"Failed to display image: {image_data['name']}"
-                            )
-                            # col.error(f"Failed to display image: {image_data['name']}")
-                    else:
-                        warnings.append(
-                            f"Failed to decode image content: {image_data['name']}"
-                        )
-                        # col.error(f"Failed to decode image content: {image_data['name']}")
+        cols = st.columns(3) 
+        for i, image_data in enumerate(images_data):
+            encoded_content = image_data["content"]
+            image_bytes = decode_base64(encoded_content)
+            if image_bytes:
+                try:
+                    image = Image.open(io.BytesIO(image_bytes))
+                    cols[i % 3].image(
+                        image, caption=image_data["name"], use_column_width=True
+                    ) 
+                except:
+                    warnings.append(
+                        f"Failed to display image: {image_data['name']}"
+                    )
+            else:
+                warnings.append(
+                    f"Failed to decode image content: {image_data['name']}"
+                )
         st.success("Images loaded!")
         instractions_placeholder.write(
             ":green[press on the arrows on the top right corner to see the images in full size]"
@@ -125,8 +114,6 @@ def display_small_images(images_data):
         if warnings:
             for warning in warnings:
                 st.warning(warning)
-
-
 def calculate_center(df):
     average_latitude = df["latitude"].mean()
     average_longitude = df["longitude"].mean()
