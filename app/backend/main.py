@@ -166,15 +166,16 @@ async def calculate_phash_value(image_data: bytes) -> str:
             shutil.os.remove(path)
     return result
 
-def make_round(image, size=(40, 40), border=5, fill_color='white'):
+def make_round(image, size=(40, 40), border=5, fill_color='white', outer_color='black', outer_width=2):
     image = image.resize(size, Image.LANCZOS)
-    result = Image.new('RGBA', (size[0]+border*2, size[1]+border*2))
+    result = Image.new('RGBA', (size[0]+border*2+outer_width*2, size[1]+border*2+outer_width*2))
     mask = Image.new('L', size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0) + size, fill=255)
-    result.paste(image, (border, border), mask=mask)
+    result.paste(image, (border+outer_width, border+outer_width), mask=mask) 
     draw = ImageDraw.Draw(result)
-    draw.ellipse((0, 0, result.size[0]-1, result.size[1]-1), outline=fill_color, width=border)
+    draw.ellipse((0, 0, result.size[0]-1, result.size[1]-1), outline=outer_color, width=outer_width)
+    draw.ellipse((outer_width, outer_width, result.size[0]-outer_width-1, result.size[1]-outer_width-1), outline=fill_color, width=border)
 
     return result
 
@@ -302,9 +303,7 @@ async def patch_image(image_name: str, image: ImageModel):
         for field, value in update_data.items():
             if value is not None:
                 setattr(stored_image_data, field, value)
-        
         database[image_name] = stored_image_data
-        
         return {"image": stored_image_data.dict()}
     else:
         database[image_name] = image.dict()
