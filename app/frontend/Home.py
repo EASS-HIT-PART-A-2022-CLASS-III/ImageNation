@@ -32,6 +32,14 @@ def add_bg_from_local(image_file):
             visibility: hidden;
         }}
     </style>
+
+    <h1 style='text-align: center; pointer-events: none;'>
+    <span style='color: black;'>Welcome To </span></span><span style='color: green;'>I</span><span style='color: yellow;'>M</span><span style='color: orange;'>A</span><span style='color: red;'>G</span><span style='color: violet;'>E</span><span>-</span><span style='color: indigo;'>N</span><span style='color: blue;'>A</span><span style='color: green;'>T</span><span style='color: yellow;'>I</span><span style='color: orange;'>O</span><span style='color: red;'>N</span><span> 🌍</span>
+    </h1>
+    <h2 style='text-align: center; pointer-events: none;'>
+    <span style='color: black;'>Are you ready to re-explore the world? 🛺</span>
+    </h2>
+    
     """,
     unsafe_allow_html=True
     )
@@ -39,8 +47,8 @@ add_bg_from_local('backgrond_Image.jpg')
 
 
 ################Welcome To App
-st.title("Welcom To :blue[IMAGE-NATION] 🌍")
-st.subheader(":green[Are you ready to re-explore the world?] 🛺")
+#st.title("Welcom To :blue[IMAGE-NATION] 🌍")
+#st.subheader(":green[Are you ready to re-explore the world?] 🛺")
 st.markdown("---")
 st.write("Welcome to my app!")
 st.write("This is the landing page.")

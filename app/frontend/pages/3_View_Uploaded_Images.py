@@ -32,7 +32,7 @@ st.markdown(
     }
     </style>
 
-    <h1 style='text-align: center; color: blue;'>View Uploade Image</h1>
+    <h1 style='text-align: center; color: blue;'>View Uploade Image 📽️</h1>
     """,
     unsafe_allow_html=True,
 )
@@ -62,8 +62,8 @@ def create_db_df(images_data):
 
 
 def view_images_content(df):
+    st.write("This is the details table content.")
     with st.spinner("Loading Data Frame please wait..."):
-        st.write("This is the details table content.")
         df = df.drop(columns=["content", "smallRoundContent"])
         column_options = [col for col in df.columns if col != "name"]
         imageDetails_multiSelect = st.multiselect(
@@ -85,6 +85,7 @@ def decode_base64(encoded_str: str) -> bytes:
     if encoded_str is not None:
         return base64.b64decode(encoded_str.encode("ascii"))
     return b""
+
 def display_small_images(images_data):
     instractions_placeholder = st.empty()
     with st.spinner("Loading Images..."):
