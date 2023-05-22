@@ -25,20 +25,18 @@ st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
 ################removing streamlit buttom-logo
 st.markdown(
     """
-<style>
-.css-cio0dv.egzxvld1
-{
-    visibility: hidden;
-}
-</style>
+    <style>
+    .css-cio0dv.egzxvld1
+    {
+        visibility: hidden;
+    }
+    </style>
+
+    <h1 style='text-align: center; color: blue;'>View Uploade Image</h1>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown(
-    "<h1 style='text-align: center; color: blue;'>View Uploade Image</h1>",
-    unsafe_allow_html=True,
-)
 imageView_radioButton = st.sidebar.radio(
     "View images",
     options=["Show details Table", "Show small images", "Show images on map"],

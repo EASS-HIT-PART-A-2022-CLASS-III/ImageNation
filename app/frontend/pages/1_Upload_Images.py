@@ -15,17 +15,22 @@ from models import ImageModel
 st.set_page_config(page_title="Image Uploadung", page_icon="📮")
 st.markdown(
     """
-<style>
-.css-cio0dv.egzxvld1
-{
-    visibility: hidden;
-}
-</style>
+    <style>
+    .css-cio0dv.egzxvld1
+    {
+        visibility: hidden;
+    }
+    </style>
+
+    <h1 style='text-align: center; color: blue;'>Image Uploader</h1>
     """,
     unsafe_allow_html=True,
 )
+
 ################Welcome To App
 ################Upload images
+st.header("Upload images to the Database")
+st.markdown("---")
 
 
 uploaded_files = st.file_uploader(

@@ -26,18 +26,20 @@ st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
 ################removing streamlit buttom-logo
 st.markdown(
     """
-<style>
-.css-cio0dv.egzxvld1
-{
-    visibility: hidden;
-}
-</style>
+    <style>
+    .css-cio0dv.egzxvld1
+    {
+        visibility: hidden;
+    }
+    </style>
+
+    <h1 style='text-align: center; color: red;'>Edit Image Data</h1>
     """,
     unsafe_allow_html=True,
 )
 
 st.markdown(
-    "<h1 style='text-align: center; color: red;'>Edit Image Data</h1>",
+    "",
     unsafe_allow_html=True,
 )
 
