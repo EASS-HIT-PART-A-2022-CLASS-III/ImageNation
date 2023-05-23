@@ -1,33 +1,9 @@
 import streamlit as st
-import pandas as pd
-import requests
-import folium
-from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
-from folium.features import CustomIcon
-import io
-from PIL import Image, ImageOps, ImageDraw
-import base64
-import hashlib
-import sys
-from app.models import ImageModel
-from app.utils import (
-    get_images,
-    create_db_df,
-    decode_base64,
-    get_duplicates,
-    delete_image,
-)
-from PIL import UnidentifiedImageError
-from concurrent.futures import ThreadPoolExecutor
-import folium
-from folium.plugins import PolyLineTextPath
-from PIL import Image
-import io
+from app.frontend.utils import get_duplicates, delete_image
 
 
 st.set_page_config(page_title="Find Duplicates", page_icon="👯‍♀️")
-################removing streamlit buttom-logo
+
 st.markdown(
     """
     <style>

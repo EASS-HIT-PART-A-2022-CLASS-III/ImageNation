@@ -5,11 +5,9 @@ import folium
 from streamlit_folium import folium_static
 import streamlit as st
 import numpy as np
-import base64
 from PIL import Image
 import io
-from app.models import GPS, ImageModel
-from app.utils import get_images, create_db_df, decode_base64, get_country_name
+from app.frontend.utils import get_images, create_db_df, decode_base64, get_country_name
 
 
 st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")

@@ -1,28 +1,17 @@
 import streamlit as st
 import pandas as pd
-import requests
 import folium
 from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
-from folium.features import CustomIcon
 import io
-from PIL import Image, ImageOps, ImageDraw
-import base64
-import hashlib
-import sys
-
-sys.path.append("..")
-from models import ImageModel
-from PIL import UnidentifiedImageError
-from concurrent.futures import ThreadPoolExecutor
+from PIL import Image
+from app.frontend.utils import get_images, create_db_df, decode_base64
 import folium
-from folium.plugins import PolyLineTextPath
 from PIL import Image
 import io
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
-################removing streamlit buttom-logo
 st.markdown(
     """
     <style>
@@ -44,26 +33,9 @@ imageView_radioButton = st.sidebar.radio(
 )
 
 
-def get_images():
-    response = requests.get("http://localhost:8000/images")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
-
-
-def create_db_df(images_data):
-    df = pd.json_normalize(images_data)
-    if "gps" in df.columns:
-        df = df.drop(columns="gps")
-    df.columns = [col.replace("gps.", "") for col in df.columns]
-    return df
-
-
 def view_images_content(df):
-    st.write("This is the details table content.")
     with st.spinner("Loading Data Frame please wait..."):
+        st.write("This is the details table content.")
         df = df.drop(columns=["content", "smallRoundContent"])
         column_options = [col for col in df.columns if col != "name"]
         imageDetails_multiSelect = st.multiselect(
@@ -79,12 +51,6 @@ def view_images_content(df):
         temp_df = df[selected_columns]
         st.dataframe(temp_df)
     st.success("Data Frame loaded!")
-
-
-def decode_base64(encoded_str: str) -> bytes:
-    if encoded_str is not None:
-        return base64.b64decode(encoded_str.encode("ascii"))
-    return b""
 
 
 def display_small_images(images_data):

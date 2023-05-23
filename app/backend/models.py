@@ -7,6 +7,7 @@ from pydantic import BaseModel, DirectoryPath, Field
 class GPS(BaseModel):
     country: str | None = Field(None, example="Israel")
     altitude: float | None = Field(None, example=0.0)
+    direction: float | None = Field(None, example=0.0)
     latitude: float | None = Field(None, example=0.0)
     longitude: float | None = Field(None, example=0.0)
 

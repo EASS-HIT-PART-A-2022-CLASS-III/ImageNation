@@ -5,7 +5,7 @@ import time
 from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Tuple, Union
 from imagededup.methods import PHash
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
@@ -64,13 +64,15 @@ database = {
 
 async def extract_gps_data_and_convert_to_decimal(
     gps_data: dict,
-) -> Tuple[float, float, float, str]:
+) -> Tuple[float, float, float, float, str]:
     latitude = gps_data.get("GPSLatitude", None)
     longitude = gps_data.get("GPSLongitude", None)
     latitude_ref = gps_data.get("GPSLatitudeRef", None)
     longitude_ref = gps_data.get("GPSLongitudeRef", None)
     altitude = gps_data.get("GPSAltitude", None)
-    altitude_ref = gps_data.get("GPSAltitudeRef", None)
+    altitude_ref = gps_data.get("GPSAltitudeRef", b"\x00")
+    direction = gps_data.get("GPSImgDirection", None)
+
     if latitude and longitude and latitude_ref and longitude_ref:
         lat = (latitude[0] + latitude[1] / 60 + latitude[2] / 3600) * (
             -1 if latitude_ref == "S" else 1
@@ -78,11 +80,21 @@ async def extract_gps_data_and_convert_to_decimal(
         lon = (longitude[0] + longitude[1] / 60 + longitude[2] / 3600) * (
             -1 if longitude_ref == "W" else 1
         )
-        alt = altitude * (-1 if altitude_ref == 1 else 1)
+
+        # Handle altitude value if available
+        if altitude is not None:
+            alt = altitude * (-1 if altitude_ref == b"\x01" else 1)
+        else:
+            alt = None
+
+        # The direction is already a float, use as is
+        dir = direction
+
         country = get_country_name(lat, lon)
-        return lat, lon, alt, country
+
+        return lat, lon, alt, dir, country
     else:
-        return None, None, None, None
+        return None, None, None, None, None
 
 
 def decode_base64(encoded_str: str) -> bytes:
@@ -120,7 +132,9 @@ async def delete_exif_data(img: Image) -> Image:
     return img_without_exif
 
 
-async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, datetime]:
+async def parse_gps_and_date(
+    image_data: bytes,
+) -> Tuple[float, float, float, float, str, datetime]:
     try:
         with Image.open(io.BytesIO(image_data)) as img:
             exif_data = img._getexif()
@@ -136,12 +150,17 @@ async def parse_gps_and_date(image_data: bytes) -> Tuple[float, float, float, da
                 elif tag_name == "DateTimeOriginal":
                     datetime_original = datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
         if gps_data:
-            lat, lon, altitude, country = await extract_gps_data_and_convert_to_decimal(
-                gps_data
-            )
-            return lat, lon, altitude, country, datetime_original
+            print(gps_data)
+            (
+                lat,
+                lon,
+                altitude,
+                dir,
+                country,
+            ) = await extract_gps_data_and_convert_to_decimal(gps_data)
+            return lat, lon, altitude, dir, country, datetime_original
         else:
-            return None, None, None, None, datetime_original
+            return None, None, None, None, None, datetime_original
     except Exception as e:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -219,12 +238,30 @@ async def process_small_image_data(image_data: bytes) -> bytes:
             detail="error when processing small image",
         )
 
+    return result
+
+
+async def process_small_image_data(image_data: bytes) -> bytes:
+    try:
+        with Image.open(io.BytesIO(image_data)) as img:
+            processed_img = make_round(img)
+            byte_arr = io.BytesIO()
+            processed_img.save(byte_arr, format="PNG")
+            return byte_arr.getvalue()
+    except Exception as e:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="error when processing small image",
+        )
+
 
 async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
     image_data = await read_image_data(image)
     phash_value = await calculate_phash_value(image_data)
-    lat, lon, alt, country, date = await parse_gps_and_date(image_data)
-    gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, country=country)
+    lat, lon, alt, dir, country, date = await parse_gps_and_date(image_data)
+    gps_data = GPS(
+        latitude=lat, longitude=lon, altitude=alt, direction=dir, country=country
+    )
     file_size = float(len(image_data))
     image_encoded = encode_base64(image_data)
     small_image_data = await process_small_image_data(image_data)
