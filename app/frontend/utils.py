@@ -10,6 +10,16 @@ import httpx
 API_URL = "http://localhost:8000"
 
 
+@st.cache_data
+def load_data():
+    with st.spinner("Loading Data..."):
+        images_data = get_images()
+        df = create_db_df(images_data)
+        st.success("Data Loaded!")
+        return df
+
+
+@st.cache_data
 def get_images():
     with httpx.Client() as client:
         response = client.get(f"{API_URL}/images")

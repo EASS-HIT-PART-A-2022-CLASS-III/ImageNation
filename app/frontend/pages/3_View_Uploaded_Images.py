@@ -5,7 +5,7 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from app.frontend.utils import get_images, create_db_df, decode_base64
+from app.frontend.utils import get_images, create_db_df, decode_base64, load_data
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
@@ -30,15 +30,25 @@ imageView_radioButton = st.sidebar.selectbox(
     index=0,
 )
 
+# TODO: check if streamlit_pandas is needed
+# def view_image_details():
+#     with st.spinner("Loading Data Frame please wait..."):
+#        create_data = {
+#            "name": "multiselect"
+#        }
+#        all_widgets = sp.create_widgets(df, create_data)
+#        res = sp.filter_df(df, all_widgets)
+#        st.write(res)
+
 
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-        # Remove columns that start with "data_"
-        df = df.drop(columns=["content", "smallRoundContent"])
-        df = df.drop(columns=df.columns[df.columns.str.startswith("data_")])
+        data_df = df.drop(columns=["content", "smallRoundContent"]).drop(
+            columns=df.columns[df.columns.str.startswith("data_")]
+        )
 
-        column_options = [col for col in df.columns if col != "name"]
+        column_options = [col for col in data_df.columns if col != "name"]
         imageDetails_multiSelect = st.multiselect(
             ":red[Select which details to show]",
             options=column_options,
@@ -48,7 +58,7 @@ def view_images_content(df):
         selected_columns = ["name"] + [
             col.replace("gps.", "") for col in imageDetails_multiSelect
         ]
-        df.columns = [col.replace("gps.", "") for col in df.columns]
+        data_df.columns = [col.replace("gps.", "") for col in data_df.columns]
         temp_df = df[selected_columns]
         st.dataframe(temp_df)
     st.success("Data Frame loaded!")
@@ -90,7 +100,7 @@ def calculate_center(df):
 def process_image(row):
     name = row["name"]
     date = row["date"]
-    encoded_small_content = row.get("smallRoundContent")
+    encoded_small_content = row["smallRoundContent"]
     if pd.isnull(encoded_small_content):
         return f"Skipping image '{name}' due to missing small content."
     encoded_content = row.get("content")
@@ -140,11 +150,49 @@ def plot_images_on_map(df):
             st.warning(warning)
 
 
+df = load_data()
 images_data = get_images()
-df = create_db_df(images_data)
+
 if imageView_radioButton == "Show details Table":
     view_images_content(df)
 elif imageView_radioButton == "Show small images":
     display_small_images(images_data)
 elif imageView_radioButton == "Show images on map":
     plot_images_on_map(df)
+
+
+# TODO: add image grid like below
+# st.title("Demo for Image Grid")
+
+# @st.cache(allow_output_mutation=True)
+# def load_images():
+#     image_files = glob.glob("images/*/*.jpg")
+#     manuscripts = []
+#     for image_file in image_files:
+#         image_file = image_file.replace("\\", "/")
+#         parts = image_file.split("/")
+#         if parts[1] not in manuscripts:
+#             manuscripts.append(parts[1])
+#     manuscripts.sort()
+#     return image_files, manuscripts
+
+# images, manuscripts = load_images()
+
+# manuscripts = st.multiselect("Select Manuscript", manuscripts)
+
+# view_images = []
+# for image in images:
+#     if any(manuscript in image for manuscript in manuscripts):
+#         view_images.append(image)
+
+# n = st.number_input("Grid Width", 1, 5, 2)
+
+# groups = []
+# for i in range(0, len(view_images), n):
+#     groups.append(view_images[i:i+n])
+
+
+# for group in groups:
+#     cols = st.columns(n)
+#     for i, image in enumerate(group):
+#         cols[i].image(image)
