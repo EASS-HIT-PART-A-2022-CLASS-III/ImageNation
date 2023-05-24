@@ -18,13 +18,14 @@ st.markdown(
     }
     </style>
 
-    <h1 style='text-align: center; color: blue;'>View Uploade Image 📽️</h1>
+    <h1 style='text-align: center; color: blue;'>View Uploaded Image 📽️</h1>
     """,
     unsafe_allow_html=True,
 )
 
-imageView_radioButton = st.sidebar.radio(
-    "View images",
+st.sidebar.title("View Images")
+imageView_radioButton = st.sidebar.selectbox(
+    "Choose how to view images",
     options=["Show details Table", "Show small images", "Show images on map"],
     index=0,
 )
@@ -33,7 +34,6 @@ imageView_radioButton = st.sidebar.radio(
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-
         # Remove columns that start with "data_"
         df = df.drop(columns=["content", "smallRoundContent"])
         df = df.drop(columns=df.columns[df.columns.str.startswith("data_")])

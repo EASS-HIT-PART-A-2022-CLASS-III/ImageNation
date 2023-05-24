@@ -19,7 +19,7 @@ st.markdown(
 st.markdown("---")
 st.header("Upload images to the Database")
 
-
+borat_container = st.container()
 uploaded_files = st.file_uploader(
     "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
@@ -33,8 +33,9 @@ if upload_button:
         if uploaded_files:
             response = upload_images(uploaded_files)
             if response.status_code == 201:
-                col1.image("great_succes.gif", use_column_width=True)
-                col3.image("great_succes.gif", use_column_width=True)
+                # borat_container.image("boratGreat.gif")
+                col1.image("boratGreat.gif", use_column_width=True)
+                col3.image("boratGreat.gif", use_column_width=True)
                 col2.success(
                     f"Successfully uploaded {len(uploaded_files)} images, see below the uploaded images."
                 )

@@ -35,7 +35,9 @@ df = create_db_df(images_data)
 def edit_image_data(df):
     image_names = df["name"].unique()
     image_names = np.insert(image_names, 0, "Please select an image")
-    selected_image_name = st.selectbox("Select Image", image_names)
+    selected_image_name = st.selectbox(
+        "Select Image", image_names, label_visibility="collapsed"
+    )
     edit_placeholder = st.empty()
 
     if selected_image_name and selected_image_name != "Please select an image":
