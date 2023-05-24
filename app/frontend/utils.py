@@ -25,7 +25,11 @@ def create_db_df(images_data):
     if "gps" in df.columns:
         df = df.drop(columns="gps")
     if "location" in df.columns:
-        df = df.drop(columns="location")
+        df["location"] = df["location"].apply(
+            lambda loc: loc["country"]
+            if isinstance(loc, dict) and "country" in loc
+            else None
+        )
     df.columns = [
         col.replace("gps_", "").replace("location_", "") for col in df.columns
     ]

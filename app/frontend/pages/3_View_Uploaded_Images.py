@@ -33,7 +33,11 @@ imageView_radioButton = st.sidebar.radio(
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
+
+        # Remove columns that start with "data_"
         df = df.drop(columns=["content", "smallRoundContent"])
+        df = df.drop(columns=df.columns[df.columns.str.startswith("data_")])
+
         column_options = [col for col in df.columns if col != "name"]
         imageDetails_multiSelect = st.multiselect(
             ":red[Select which details to show]",

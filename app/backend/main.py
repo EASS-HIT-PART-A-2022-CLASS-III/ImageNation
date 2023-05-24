@@ -51,6 +51,7 @@ image7 = ImageModel(
     name="image7.jpg",
     phash="1122334455667788",
     gps=None,
+    location=Location(country="Israel", data={"state": "israel"}),
     date=datetime(2022, 3, 3, 12, 0, 0),
     image="ddsfvfdgfdgfd",
 )
