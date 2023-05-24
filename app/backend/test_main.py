@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 import json
 from fastapi import status
 import pytest
-from app.models import DateTimeEncoder
+from app.backend.models import DateTimeEncoder
 from main import app
 import os
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -16,7 +16,7 @@ client = TestClient(app=app)
 def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Welcome to ImagePlotter"}
+    assert response.json() == {"message": "IMAGE-NATION is UP"}
 
 
 def test_upload_and_calculate_phash():

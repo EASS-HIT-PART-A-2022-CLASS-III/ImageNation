@@ -1,6 +1,5 @@
 import streamlit as st
-import requests
-import io
+from app.frontend.utils import upload_images
 
 
 st.set_page_config(page_title="Image Uploadung", page_icon="📮")
@@ -32,16 +31,7 @@ upload_button = col2.button("Upload Images")
 if upload_button:
     with st.spinner("Uploading Images..."):
         if uploaded_files:
-            files_dict = []
-            for uploaded_file in uploaded_files:
-                file_bytes = io.BytesIO(uploaded_file.read())
-                files_dict.append(
-                    ("images", (uploaded_file.name, file_bytes, uploaded_file.type))
-                )
-            response = requests.post(
-                "http://localhost:8000/images/",
-                files=files_dict,
-            )
+            response = upload_images(uploaded_files)
             if response.status_code == 201:
                 col1.image("great_succes.gif", use_column_width=True)
                 col3.image("great_succes.gif", use_column_width=True)

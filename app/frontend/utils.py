@@ -1,25 +1,34 @@
+import io
 import requests
 import streamlit as st
 import pandas as pd
 import base64
 from geopy import Point
 from geopy.geocoders import Nominatim
+import httpx
+
+API_URL = "http://localhost:8000"
 
 
 def get_images():
-    response = requests.get("http://localhost:8000/images")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
+    with httpx.Client() as client:
+        response = client.get(f"{API_URL}/images")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error("Failed to retrieve images.")
+            return []
 
 
 def create_db_df(images_data):
-    df = pd.json_normalize(images_data)
+    df = pd.json_normalize(images_data, sep="_")
     if "gps" in df.columns:
         df = df.drop(columns="gps")
-    df.columns = [col.replace("gps.", "") for col in df.columns]
+    if "location" in df.columns:
+        df = df.drop(columns="location")
+    df.columns = [
+        col.replace("gps_", "").replace("location_", "") for col in df.columns
+    ]
     return df
 
 
@@ -48,18 +57,32 @@ def get_country_name(latitude: float, longitude: float) -> str:
 
 
 def get_duplicates():
-    response = requests.get("http://localhost:8000/findDuplicateImages")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Failed to retrieve images.")
-        return []
+    with httpx.Client() as client:
+        response = client.get(f"{API_URL}/findDuplicateImages")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error("Failed to retrieve images.")
+            return []
 
 
 def delete_image(image_name):
-    response = requests.delete(f"http://localhost:8000/deleteImage/{image_name}")
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error(f"Failed to delete image: {image_name}")
-        return None
+    with httpx.Client() as client:
+        response = client.delete(f"{API_URL}/deleteImage/{image_name}")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"Failed to delete image: {image_name}")
+            return None
+
+
+def upload_images(uploaded_files):
+    files_dict = []
+    for uploaded_file in uploaded_files:
+        file_bytes = io.BytesIO(uploaded_file.read())
+        files_dict.append(
+            ("images", (uploaded_file.name, file_bytes, uploaded_file.type))
+        )
+    with httpx.Client() as client:
+        response = client.post(f"{API_URL}/images/", files=files_dict)
+    return response

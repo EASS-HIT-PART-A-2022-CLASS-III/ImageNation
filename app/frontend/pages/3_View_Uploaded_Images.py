@@ -6,9 +6,6 @@ from folium.plugins import MarkerCluster
 import io
 from PIL import Image
 from app.frontend.utils import get_images, create_db_df, decode_base64
-import folium
-from PIL import Image
-import io
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
