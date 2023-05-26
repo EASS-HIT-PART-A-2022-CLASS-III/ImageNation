@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 from pydantic import BaseModel, Field, DirectoryPath
+from typing import List
 
 
 class Location(BaseModel):
@@ -27,28 +28,50 @@ class ImageModel(BaseModel):
         None, example="ThisIsASmallRoundImageInBase64Format"
     )
 
-class Image(BaseModel):
+
+class ImageBase(BaseModel):
     name: str = Field(..., example="image.jpg")
     content: str | None = Field(None, example="ThisIsAnImageInBase64Format")
-    
 
-class ShowImage(BaseModel):
-    name: str = Field(..., example="image.jpg")
-    class Config():
+
+class Image(ImageBase):
+    class Config:
         orm_mode = True
+
 
 class User(BaseModel):
     name: str
     email: str
     password: str
-    class Config():
+
+    class Config:
         orm_mode = True
+
 
 class UserOut(BaseModel):
     name: str
     email: str
-    class Config():
+    images: List[Image] = []
+
+    class Config:
         orm_mode = True
+
+
+class ImageOut(BaseModel):
+    name: str = Field(..., example="image.jpg")
+    owner: UserOut
+
+    class Config:
+        orm_mode = True
+
+
+class Login(BaseModel):
+    username: str
+    password: str
+
+
+class TokenData(BaseModel):
+    email: str | None = None
 
 
 class DateTimeEncoder(json.JSONEncoder):

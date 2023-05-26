@@ -7,3 +7,8 @@ Pillow
 starlette
 httpx
 geopy
+#new
+sqlalchemy
+passlib
+bcrypt
+python-jose

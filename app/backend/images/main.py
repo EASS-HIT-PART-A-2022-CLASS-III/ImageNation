@@ -1,114 +1,29 @@
-from typing import List
-from fastapi import FastAPI, Depends, status, HTTPException, Response
-import schemas, models
-from database import engine, SessionLocal
-from sqlalchemy.orm import Session
-from hashing import Hash
+from fastapi import FastAPI
+import models
+from database import engine
+from routers import image, user, authentication
 
 
 app = FastAPI()
 
 models.Base.metadata.create_all(engine)
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.post(
-        '/images',
-        status_code=status.HTTP_201_CREATED,
-)
-def create_image(request: schemas.Image, db: Session = Depends(get_db)):
-    new_image = models.Image(name=request.name, content=request.content)
-    db.add(new_image)
-    db.commit()
-    db.refresh(new_image)
-    return new_image
-
-@app.get(
-    "/images",
-    response_model=List[schemas.ShowImage],
-    response_description="The list of images",
-    status_code=status.HTTP_200_OK,
-)
-def show_all(db: Session = Depends(get_db)):
-    images = db.query(models.Image).all()
-    if not images:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No images available")
-    return images
-
-@app.get(
-    "/image/{id}",
-    #response_model=ImageModel,
-    response_description="The image",
-    status_code=status.HTTP_200_OK,
-)
-def show_image(id, response: Response, db: Session = Depends(get_db)):
-    image = db.query(models.Image).filter(models.Image.id == id).first()
-    if not image:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Image with the id {id} is not available")
-    return image
-
- 
-@app.delete(
-        "/image/{id}",
-        response_description="The deleted image",
-        status_code=status.HTTP_204_NO_CONTENT
-)
-def delete_image(id, db: Session = Depends(get_db)):
-    image = db.query(models.Image).filter(models.Image.id == id)
-    if not image.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Image with the id {id} is not available")
-    image.delete(synchronize_session=False)
-    db.commit()
-    return{"message": f"image with the id: {id} deleted"}   
-
-@app.put(
-     "/image/{id}",
-     #response_description="The updated image",
-     status_code=status.HTTP_202_ACCEPTED,
- )
-def update_image(id, request: schemas.Image, db: Session = Depends(get_db)):
-    image = db.query(models.Image).filter(models.Image.id == id)
-    if not image.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Image with the id {id} not found")
-    image.update(request.dict())
-    db.commit()
-    return{"message": f"image with the id: {id} updated"}   
-     
-
-@app.post(
-        '/user',
-        response_model=schemas.UserOut,
-)
-def create_user(request: schemas.User, db: Session = Depends(get_db)):
-    new_user = models.User(name=request.name, email=request.email, password=Hash.bcrypt(request.password))
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-@app.get('/user/{id}', response_model=schemas.UserOut)
-def get_user(id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == id).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with the id {id} is not available")
-    return user
+app.include_router(authentication.router)
+app.include_router(user.router)
+app.include_router(image.router)
 
 
-
-
-
-
-
-
-
-
-
+# @app.get(
+#     "/images",
+#     response_model=List[schemas.ImageOut],
+#     response_description="The list of images",
+#     status_code=status.HTTP_200_OK,
+# )
+# def show_all(db: Session = Depends(get_db)):
+#     images = db.query(models.Image).all()
+#     if not images:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No images available")
+#     return images
 
 
 # @app.get(
@@ -125,7 +40,6 @@ def get_user(id: int, db: Session = Depends(get_db)):
 #         return {"locatin_data": location_data}
 #     else:
 #         return {"message": "Location data is not available for this image."}
-
 
 
 # @app.get("/", status_code=status.HTTP_200_OK)
@@ -146,8 +60,6 @@ def get_user(id: int, db: Session = Depends(get_db)):
 #     return {"status": "success", "message": f"{len(images)} images uploaded"}
 
 
-
-
 # @app.get(
 #     "/images/{image_name}/get_image_gps_data",
 #     response_description="Get GPS data of the image",
@@ -162,10 +74,6 @@ def get_user(id: int, db: Session = Depends(get_db)):
 #         return {"gps_data": gps_data}
 #     else:
 #         return {"message": "GPS data is not available for this image."}
-
-
-
-
 
 
 # @app.patch(
@@ -187,5 +95,3 @@ def get_user(id: int, db: Session = Depends(get_db)):
 #     else:
 #         database[image_name] = image.dict()
 #         return {"status": "success", "message": f"{image_name} updated"}
-
-
