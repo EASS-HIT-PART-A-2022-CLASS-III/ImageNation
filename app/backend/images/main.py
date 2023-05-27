@@ -5,13 +5,14 @@ from routers import image, user, authentication
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
 
-app = FastAPI(title="Image-Nation", version="0.1.0")
+app = FastAPI(title="Image-Nation_Backend", version="0.2.0")
 
 models.Base.metadata.create_all(engine)
 
 app.include_router(authentication.router)
 app.include_router(user.router)
 app.include_router(image.router)
+
 
 
 class ProccessingTimeMiddleware(BaseHTTPMiddleware):
@@ -108,3 +109,19 @@ app.add_middleware(ProccessingTimeMiddleware)
 #     else:
 #         database[image_name] = image.dict()
 #         return {"status": "success", "message": f"{image_name} updated"}
+
+# @app.get(
+#     "/findDuplicateImages",
+#     tags=["Dup"],
+#     response_description="The duplicate images",
+#     status_code=status.HTTP_200_OK,
+# )
+# async def find_duplicate():
+#     if database:
+#         duplicates = await find_duplicate_images(database)
+#         return {"duplicates": duplicates}
+#     else:
+#         raise HTTPException(status_code=404, detail=f"No images found")
+
+
+
