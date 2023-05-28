@@ -1,52 +1,18 @@
 import base64
-from fastapi import FastAPI, Request, UploadFile, HTTPException, status, File
 import shutil
-from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Tuple, Union
 from imagededup.methods import PHash
 from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
-from models import ImageModel, GPS, Location
+from schemas import ImageModel, GPS, Location
 import tempfile
 from geopy import Point
 from geopy.geocoders import Nominatim
 
 
-# image5 = ImageModel(
-#     name="image5.jpg",
-#     phash="aabbccddeeff0011",
-#     gps=GPS(latitude=12.34, longitude=56.78, altitude=90.0),
-#     date=datetime(2022, 1, 1, 12, 0, 0),
-#     image="fdsfdgfddsgfd",
-# )
-
-# image6 = ImageModel(
-#     name="image6.jpg",
-#     phash="1122334455667788",
-#     gps=GPS(latitude=-12.34, longitude=-56.78, altitude=100.0),
-#     date=datetime(2022, 2, 2, 12, 0, 0),
-#     image="sffdsgvcvee",
-# )
-
-# image7 = ImageModel(
-#     name="image7.jpg",
-#     phash="1122334455667788",
-#     gps=None,
-#     location=Location(country="Israel", data={"state": "israel"}),
-#     date=datetime(2022, 3, 3, 12, 0, 0),
-#     image="ddsfvfdgfdgfd",
-# )
-
-# database = {
-#     image5.name: image5,
-#     image6.name: image6,
-#     image7.name: image7,
-# }
-
-
-async def extract_gps_data_and_convert_to_decimal(
+def extract_gps_data_and_convert_to_decimal(
     gps_data: dict,
 ) -> Tuple[float, float, float, float]:
     latitude = gps_data.get("GPSLatitude", None)
@@ -68,7 +34,6 @@ async def extract_gps_data_and_convert_to_decimal(
         else:
             alt = None
         dir = direction
-
         return lat, lon, alt, dir
     else:
         return None, None, None, None
@@ -84,50 +49,27 @@ def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
 
 
-# def get_country_name(latitude: float, longitude: float) -> str:
-#     try:
-#         geolocator = Nominatim(user_agent="geoapiExercises")
-#         point = Point(latitude, longitude)
-#         location = geolocator.reverse(point, exactly_one=True, language="en")
-#         address = location.raw.get("address")
-#         print(address)
-#         if address and "country" in address:
-#             return address["country"]
-#     except Exception as e:
-#         raise HTTPException(
-#             status.HTTP_503_SERVICE_UNAVAILABLE,
-#             detail="error when getting country name",
-#         )
-#     return None
-
-
 def get_country_name(location_details: dict) -> str:
     return location_details.get("country")
 
 
-def get_location_details(latitude: float, longitude: float) -> dict:
+class NoLocationDetailsFound(Exception):
+    pass
+
+class ErrorGettingLocationDetails(Exception):
+    pass
+
+async def get_location_details(latitude: float, longitude: float) -> dict:
     try:
         geolocator = Nominatim(user_agent="geoapiExercises")
         point = Point(latitude, longitude)
         location = geolocator.reverse(point, exactly_one=True, language="en")
         address = location.raw.get("address")
-
         if not address:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No location details found",
-            )
-
+            raise NoLocationDetailsFound()
         return address
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Error when getting location details",
-        )
-
-
-async def read_image_data(file: UploadFile) -> bytes:
-    return await file.read()
+        raise ErrorGettingLocationDetails() from e
 
 
 async def delete_exif_data(img: Image) -> Image:
@@ -136,6 +78,9 @@ async def delete_exif_data(img: Image) -> Image:
     img_without_exif.putdata(data)
     return img_without_exif
 
+
+class ErrorParsingGPSDate(Exception):
+    pass
 
 async def parse_gps_and_date(
     image_data: bytes,
@@ -160,16 +105,16 @@ async def parse_gps_and_date(
                 lon,
                 altitude,
                 dir,
-            ) = await extract_gps_data_and_convert_to_decimal(gps_data)
+            ) = extract_gps_data_and_convert_to_decimal(gps_data)
             return lat, lon, altitude, dir, datetime_original
         else:
             return None, None, None, None, datetime_original
     except Exception as e:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="error when parsing gps and date",
-        )
+        raise ErrorParsingGPSDate() from e 
+    
 
+class PhashCalculationError(Exception):
+    pass
 
 async def calculate_phash_value(image_data: bytes) -> str:
     phasher = PHash()
@@ -179,15 +124,12 @@ async def calculate_phash_value(image_data: bytes) -> str:
             path = tmp_file.name
             result = phasher.encode_image(path)
         except Exception as e:
-            raise HTTPException(
-                status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="error when calculating phash",
-            )
+            raise PhashCalculationError()
         finally:
             shutil.os.remove(path)
     return result
 
-
+#TODO###############need to modify not to have ImageModel#####################
 async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
     phasher = PHash()
     encoding_images = {}
@@ -238,9 +180,11 @@ def make_round(
         outline=fill_color,
         width=border,
     )
-
     return result
 
+
+class SmallImageProcessingError(Exception):
+    pass
 
 async def process_small_image_data(image_data: bytes) -> bytes:
     try:
@@ -250,14 +194,10 @@ async def process_small_image_data(image_data: bytes) -> bytes:
             processed_img.save(byte_arr, format="PNG")
             return byte_arr.getvalue()
     except Exception as e:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="error when processing small image",
-        )
+        raise SmallImageProcessingError() from e
 
 
-async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
-    image_data = await read_image_data(image)
+async def process_image_data(image_data: bytes, image_filename: str) -> Union[ImageModel, None]:
     phash_value = await calculate_phash_value(image_data)
     lat, lon, alt, dir, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, direction=dir)
@@ -265,11 +205,11 @@ async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
     image_encoded = encode_base64(image_data)
     small_image_data = await process_small_image_data(image_data)
     small_round_image = encode_base64(small_image_data)
-    location_data = get_location_details(lat, lon)
+    location_data = await get_location_details(lat, lon)
     country = get_country_name(location_data)
     location = Location(country=country, data=location_data)
     image_obj = ImageModel(
-        name=image.filename,
+        name=image_filename,
         phash=phash_value,
         size=file_size,
         gps=gps_data.dict(),
