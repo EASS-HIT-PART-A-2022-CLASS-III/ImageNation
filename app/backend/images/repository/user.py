@@ -14,7 +14,7 @@ def create(request: schemas.User, db: Session):
     return new_user
 
 
-def get(id: int, db: Session):
+def show(id: int, db: Session):
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
         raise HTTPException(

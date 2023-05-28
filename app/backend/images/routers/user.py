@@ -23,4 +23,4 @@ def create_user(request: schemas.User, db: Session = Depends(get_db)):
 
 @router.get("/{id}", response_model=schemas.UserOut)
 def get_user(id: int, db: Session = Depends(get_db)):
-    return user.get(id, db)
+    return user.show(id, db)

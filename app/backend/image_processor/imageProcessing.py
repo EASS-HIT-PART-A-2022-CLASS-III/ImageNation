@@ -1,7 +1,6 @@
 import base64
-from fastapi import FastAPI, File, Request, UploadFile, HTTPException, status
+from fastapi import FastAPI, Request, UploadFile, HTTPException, status, File
 import shutil
-import time
 from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Tuple, Union
 from imagededup.methods import PHash
@@ -11,56 +10,40 @@ import io
 from datetime import datetime
 from models import ImageModel, GPS, Location
 import tempfile
-from starlette.middleware.base import BaseHTTPMiddleware
 from geopy import Point
 from geopy.geocoders import Nominatim
 
 
-app = FastAPI(title="ImagePlotter", version="0.1.0")
+# image5 = ImageModel(
+#     name="image5.jpg",
+#     phash="aabbccddeeff0011",
+#     gps=GPS(latitude=12.34, longitude=56.78, altitude=90.0),
+#     date=datetime(2022, 1, 1, 12, 0, 0),
+#     image="fdsfdgfddsgfd",
+# )
 
+# image6 = ImageModel(
+#     name="image6.jpg",
+#     phash="1122334455667788",
+#     gps=GPS(latitude=-12.34, longitude=-56.78, altitude=100.0),
+#     date=datetime(2022, 2, 2, 12, 0, 0),
+#     image="sffdsgvcvee",
+# )
 
-class ProccessingTimeMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        start_time = time.time()
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        return response
+# image7 = ImageModel(
+#     name="image7.jpg",
+#     phash="1122334455667788",
+#     gps=None,
+#     location=Location(country="Israel", data={"state": "israel"}),
+#     date=datetime(2022, 3, 3, 12, 0, 0),
+#     image="ddsfvfdgfdgfd",
+# )
 
-
-app.add_middleware(ProccessingTimeMiddleware)
-
-
-image5 = ImageModel(
-    name="image5.jpg",
-    phash="aabbccddeeff0011",
-    gps=GPS(latitude=12.34, longitude=56.78, altitude=90.0),
-    date=datetime(2022, 1, 1, 12, 0, 0),
-    image="fdsfdgfddsgfd",
-)
-
-image6 = ImageModel(
-    name="image6.jpg",
-    phash="1122334455667788",
-    gps=GPS(latitude=-12.34, longitude=-56.78, altitude=100.0),
-    date=datetime(2022, 2, 2, 12, 0, 0),
-    image="sffdsgvcvee",
-)
-
-image7 = ImageModel(
-    name="image7.jpg",
-    phash="1122334455667788",
-    gps=None,
-    location=Location(country="Israel", data={"state": "israel"}),
-    date=datetime(2022, 3, 3, 12, 0, 0),
-    image="ddsfvfdgfdgfd",
-)
-
-database = {
-    image5.name: image5,
-    image6.name: image6,
-    image7.name: image7,
-}
+# database = {
+#     image5.name: image5,
+#     image6.name: image6,
+#     image7.name: image7,
+# }
 
 
 async def extract_gps_data_and_convert_to_decimal(
@@ -205,6 +188,20 @@ async def calculate_phash_value(image_data: bytes) -> str:
     return result
 
 
+async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
+    phasher = PHash()
+    encoding_images = {}
+    for image_name, image_model in images.items():
+        if image_model.phash:
+            encoding_images[image_name] = image_model.phash
+        elif image_model.image:
+            encoding_images[image_name] = await calculate_phash_value(image_model.image)
+    duplicates = phasher.find_duplicates_to_remove(
+        encoding_map=encoding_images, max_distance_threshold=12
+    )
+    return duplicates
+
+
 def make_round(
     image,
     size=(40, 40),
@@ -283,148 +280,3 @@ async def process_image_file(image: UploadFile) -> Union[ImageModel, None]:
     )
     print(location)
     return image_obj
-
-
-@app.get("/", status_code=status.HTTP_200_OK)
-async def home():
-    return {"message": "IMAGE-NATION is UP"}
-
-
-@app.post(
-    "/images/",
-    response_description="The created images",
-    status_code=status.HTTP_201_CREATED,
-)
-async def upload_and_calculate_phash(images: List[UploadFile] = File(...)):
-    for image in images:
-        image_obj = await process_image_file(image)
-        if image_obj:
-            database[image_obj.name] = image_obj
-    return {"status": "success", "message": f"{len(images)} images uploaded"}
-
-
-@app.get(
-    "/images/{image_name}",
-    response_model=ImageModel,
-    response_description="The image",
-    status_code=status.HTTP_200_OK,
-)
-async def get_image(image_name: str):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-    return database[image_name]
-
-
-@app.get(
-    "/images",
-    response_model=List[ImageModel],
-    response_description="The list of images",
-    status_code=status.HTTP_200_OK,
-)
-async def get_images():
-    if database:
-        return list(database.values())
-    else:
-        raise HTTPException(status_code=404, detail=f"No images found")
-
-
-@app.delete("/deleteImage/{image_name}", response_description="The deleted image")
-async def delete_image(image_name: str):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-    del database[image_name]
-    return {"status": "success", "message": f"{image_name} deleted"}
-
-
-@app.put(
-    "/updateImage/{image_name}",
-    response_description="The updated image",
-    status_code=status.HTTP_202_ACCEPTED,
-)
-async def update_image(image_name: str, image: ImageModel):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image: {image_name} not found")
-    update_image_encoded = jsonable_encoder(image)
-    database[image_name] = update_image_encoded
-    return {"image": update_image_encoded}
-
-
-@app.patch(
-    "/patchImage/{image_name}",
-    response_description="The updated image",
-    status_code=status.HTTP_202_ACCEPTED,
-)
-async def patch_image(image_name: str, image: ImageModel):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-    stored_image_data = database.get(image_name)
-    if stored_image_data is not None:
-        update_data = image.dict(exclude_unset=True)
-        for field, value in update_data.items():
-            if value is not None:
-                setattr(stored_image_data, field, value)
-        database[image_name] = stored_image_data
-        return {"image": stored_image_data.dict()}
-    else:
-        database[image_name] = image.dict()
-        return {"status": "success", "message": f"{image_name} updated"}
-
-
-async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
-    phasher = PHash()
-    encoding_images = {}
-    for image_name, image_model in images.items():
-        if image_model.phash:
-            encoding_images[image_name] = image_model.phash
-        elif image_model.image:
-            encoding_images[image_name] = await calculate_phash_value(image_model.image)
-    duplicates = phasher.find_duplicates_to_remove(
-        encoding_map=encoding_images, max_distance_threshold=12
-    )
-    return duplicates
-
-
-@app.get(
-    "/findDuplicateImages",
-    tags=["Dup"],
-    response_description="The duplicate images",
-    status_code=status.HTTP_200_OK,
-)
-async def find_duplicate():
-    if database:
-        duplicates = await find_duplicate_images(database)
-        return {"duplicates": duplicates}
-    else:
-        raise HTTPException(status_code=404, detail=f"No images found")
-
-
-@app.get(
-    "/imageLocationData/{image_name}",
-    response_description="The location data of the image",
-    status_code=status.HTTP_200_OK,
-)
-async def get_image_location_data(image_name: str):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-    image_obj = database[image_name]
-    location_data = image_obj.location
-    if location_data:
-        return {"locatin_data": location_data}
-    else:
-        return {"message": "Location data is not available for this image."}
-
-
-@app.get(
-    "/get_image_gps_data/{image_name}",
-    response_description="Get GPS data of the image",
-    status_code=status.HTTP_200_OK,
-)
-async def get_image_gps_data(image_name: str):
-    if image_name not in database:
-        raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-    image_obj = database[image_name]
-    gps_data = image_obj.gps
-    if gps_data:
-        return {"gps_data": gps_data}
-    else:
-        return {"message": "GPS data is not available for this image."}

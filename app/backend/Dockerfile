@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /myImages/app/backend
+WORKDIR /myImages/app/backend/images
 
 COPY requirements.txt .
 

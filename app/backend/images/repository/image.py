@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import models, schemas
 
 
-def get_all(db: Session):
+def show_all(db: Session):
     images = db.query(models.Image).all()
     if not images:
         raise HTTPException(
@@ -12,7 +12,7 @@ def get_all(db: Session):
     return images
 
 
-def get(id: int, db: Session):
+def show(id: int, db: Session):
     image = db.query(models.Image).filter(models.Image.id == id).first()
     if not image:
         raise HTTPException(
@@ -20,6 +20,9 @@ def get(id: int, db: Session):
             detail=f"Image with the id {id} is not available",
         )
     return image
+
+
+#################################need to modify the user_id to current_user.id
 
 
 def create(request: schemas.Image, db: Session):
