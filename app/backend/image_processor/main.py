@@ -5,22 +5,28 @@ import imageProcessing, schemas
 app = FastAPI(title="Image_Processor", version="0.1.0")
 
 
-@app.get("/")
-def read_root():
-    return {"Image_Processor": "UP!"}
+@app.get("/", status_code=status.HTTP_200_OK)
+async def home():
+    return {"message": "Image_Processor is UP"}
 
 
-@app.post("/process_image/")
+@app.post(
+    "/process_image/", status_code=status.HTTP_200_OK, response_model=schemas.ImageModel
+)
 async def process_image_file(image: UploadFile = File(...)) -> schemas.ImageModel:
     image_filename = image.filename
     image_data = await image.read()
     processed_image = await process_image_data_with_error_handling(
         image_data, image_filename
     )
-    return processed_image.dict()
+    return processed_image
 
 
-@app.get("/get_location_details")
+@app.get(
+    "/get_location_details",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.Location,
+)
 async def get_location_details(latitude: float, longitude: float) -> schemas.Location:
     image_location_data = await get_location_details_with_error_handling(
         latitude, longitude

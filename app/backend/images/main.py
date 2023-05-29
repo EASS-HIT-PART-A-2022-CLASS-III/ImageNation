@@ -4,6 +4,7 @@ from database import engine
 from routers import image, user, authentication
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
+import httpx
 
 app = FastAPI(title="Image-Nation_Backend", version="0.2.0")
 

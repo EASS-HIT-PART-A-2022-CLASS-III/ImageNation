@@ -22,11 +22,10 @@ def show(id: int, db: Session):
     return image
 
 
-#################################need to modify the user_id to current_user.id
-
-
-def create(request: schemas.Image, db: Session):
-    new_image = models.Image(name=request.name, content=request.content, user_id=1)
+def create(request: schemas.Image, db: Session, user_id: int):
+    new_image = models.Image(
+        name=request.name, content=request.content, user_id=user_id
+    )
     db.add(new_image)
     db.commit()
     db.refresh(new_image)

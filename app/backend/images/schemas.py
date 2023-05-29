@@ -48,6 +48,15 @@ class User(BaseModel):
         orm_mode = True
 
 
+class UserBase(BaseModel):
+    id: int
+    name: str
+    email: str
+
+    class Config:
+        orm_mode = True
+
+
 class UserOut(BaseModel):
     name: str
     email: str
@@ -80,3 +89,18 @@ class DateTimeEncoder(json.JSONEncoder):
             return str(z)
         else:
             return super().default(z)
+
+
+# class SearchParams(BaseModel):
+#     directory: DirectoryPath | List[DirectoryPath]
+#     fast_search: bool = True
+#     recursive: bool = True
+#     similarity: Union[str, int, float, Literal["similar"]] = "duplicates"
+#     px_size: int = 50
+#     limit_extensions: bool = True
+#     show_progress: bool = True
+#     show_output: bool = False
+#     move_to: Optional[str] = None
+#     delete: bool = False
+#     silent_del: bool = False
+#     logs: bool = False

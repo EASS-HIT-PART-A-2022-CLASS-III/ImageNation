@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
-import models, database, schemas
+import database, schemas, models
 from hashing import Hash
 from repository import user
 

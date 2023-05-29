@@ -19,29 +19,38 @@ router = APIRouter(
 )
 def show_all(
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(oauth2.get_current_user),
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     return image.show_all(db)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_image(
-    upload_image: UploadFile = File(...),
+    upload_images: List[UploadFile] = File(...),
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(oauth2.get_current_user),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
 ):
-    image_data = await upload_image.read()
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "http://localhost:8801/process_image/",
-            files={
-                "image": (upload_image.filename, image_data, upload_image.content_type)
-            },
-        )
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-    processed_image = schemas.Image.parse_obj(response.json())
-    return image.create(processed_image, db)
+    current_user = schemas.UserBase.from_orm(current_user_model)
+    success_count = 0
+    for upload_image in upload_images:
+        image_data = await upload_image.read()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:8801/process_image/",
+                files={
+                    "image": (
+                        upload_image.filename,
+                        image_data,
+                        upload_image.content_type,
+                    )
+                },
+            )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        processed_image = schemas.Image.parse_obj(response.json())
+        image.create(processed_image, db, current_user.id)
+        success_count += 1
+    return {"message": f"{success_count} images created successfully"}
 
 
 # @router.post(
@@ -65,7 +74,7 @@ async def create_image(
 def show_image(
     id,
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(oauth2.get_current_user),
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     return image.show(id, db)
 
@@ -78,7 +87,7 @@ def show_image(
 def delete_image(
     id,
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(oauth2.get_current_user),
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     return image.delete(id, db)
 
@@ -92,7 +101,7 @@ def update_image(
     id,
     request: schemas.Image,
     db: Session = Depends(database.get_db),
-    current_user: schemas.User = Depends(oauth2.get_current_user),
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     return image.update(id, request, db)
 
