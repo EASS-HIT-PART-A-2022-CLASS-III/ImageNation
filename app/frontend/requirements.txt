@@ -1,6 +1,5 @@
 streamlit
 streamlit-folium
-requests
 pandas
 httpx
-streamlit_pandas
+

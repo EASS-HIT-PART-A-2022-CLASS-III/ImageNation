@@ -56,8 +56,10 @@ def get_country_name(location_details: dict) -> str:
 class NoLocationDetailsFound(Exception):
     pass
 
+
 class ErrorGettingLocationDetails(Exception):
     pass
+
 
 async def get_location_details(latitude: float, longitude: float) -> dict:
     try:
@@ -81,6 +83,7 @@ async def delete_exif_data(img: Image) -> Image:
 
 class ErrorParsingGPSDate(Exception):
     pass
+
 
 async def parse_gps_and_date(
     image_data: bytes,
@@ -110,11 +113,12 @@ async def parse_gps_and_date(
         else:
             return None, None, None, None, datetime_original
     except Exception as e:
-        raise ErrorParsingGPSDate() from e 
-    
+        raise ErrorParsingGPSDate() from e
+
 
 class PhashCalculationError(Exception):
     pass
+
 
 async def calculate_phash_value(image_data: bytes) -> str:
     phasher = PHash()
@@ -129,7 +133,8 @@ async def calculate_phash_value(image_data: bytes) -> str:
             shutil.os.remove(path)
     return result
 
-#TODO###############need to modify not to have ImageModel#####################
+
+# TODO###############need to modify not to have ImageModel#####################
 async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
     phasher = PHash()
     encoding_images = {}
@@ -186,6 +191,7 @@ def make_round(
 class SmallImageProcessingError(Exception):
     pass
 
+
 async def process_small_image_data(image_data: bytes) -> bytes:
     try:
         with Image.open(io.BytesIO(image_data)) as img:
@@ -197,7 +203,9 @@ async def process_small_image_data(image_data: bytes) -> bytes:
         raise SmallImageProcessingError() from e
 
 
-async def process_image_data(image_data: bytes, image_filename: str) -> Union[ImageModel, None]:
+async def process_image_data(
+    image_data: bytes, image_filename: str
+) -> Union[ImageModel, None]:
     phash_value = await calculate_phash_value(image_data)
     lat, lon, alt, dir, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, direction=dir)

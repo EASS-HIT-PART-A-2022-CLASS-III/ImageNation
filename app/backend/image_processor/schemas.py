@@ -1,7 +1,21 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
-import json
-from typing import List
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+# class ImageBase(BaseModel):
+#     name: str
+#     phash: str
+#     size: float
+
+# class ImageCreate(ImageBase):
+#     content: bytes
+
+# class Image(ImageBase):
+#     id: Optional[int] = None
+#     content: Optional[bytes] = Field(default=None)
+
+#     class Config:
+#         orm_mode = True
 
 
 class Location(BaseModel):

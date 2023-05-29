@@ -2,7 +2,6 @@ import streamlit as st
 import base64
 
 st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
-st.sidebar.title("IMAGE-NATION")
 
 
 def add_bg_from_local(image_file):

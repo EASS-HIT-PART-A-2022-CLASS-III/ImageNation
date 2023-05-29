@@ -1,10 +1,7 @@
-import io
-import requests
 import streamlit as st
+import io
 import pandas as pd
 import base64
-from geopy import Point
-from geopy.geocoders import Nominatim
 import httpx
 
 API_URL = "http://localhost:8000"
@@ -56,18 +53,20 @@ def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
 
 
-def get_country_name(latitude: float, longitude: float) -> str:
-    try:
-        geolocator = Nominatim(user_agent="geoapiExercises")
-        point = Point(latitude, longitude)
-        location = geolocator.reverse(point, exactly_one=True, language="en")
-        address = location.raw.get("address")
-        if address and "country" in address:
-            return address["country"]
-    except:
-        pass
+# TODO: Fix this to use backend route
 
-    return None
+# def get_country_name(latitude: float, longitude: float) -> str:
+#     try:
+#         geolocator = Nominatim(user_agent="geoapiExercises")
+#         point = Point(latitude, longitude)
+#         location = geolocator.reverse(point, exactly_one=True, language="en")
+#         address = location.raw.get("address")
+#         if address and "country" in address:
+#             return address["country"]
+#     except:
+#         pass
+
+#     return None
 
 
 def get_duplicates():

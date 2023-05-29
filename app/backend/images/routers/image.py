@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File
 from typing import List
 from sqlalchemy.orm import Session
 import database, schemas, oauth2, models
 from repository import image
+import httpx
 
 router = APIRouter(
     prefix="/images",
@@ -23,16 +24,36 @@ def show_all(
     return image.show_all(db)
 
 
-@router.post(
-    "/",
-    status_code=status.HTTP_201_CREATED,
-)
-def create_image(
-    request: schemas.Image,
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def create_image(
+    upload_image: UploadFile = File(...),
     db: Session = Depends(database.get_db),
     current_user: schemas.User = Depends(oauth2.get_current_user),
 ):
-    return image.create(request, db)
+    image_data = await upload_image.read()
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8801/process_image/",
+            files={
+                "image": (upload_image.filename, image_data, upload_image.content_type)
+            },
+        )
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+    processed_image = schemas.Image.parse_obj(response.json())
+    return image.create(processed_image, db)
+
+
+# @router.post(
+#     "/",
+#     status_code=status.HTTP_201_CREATED,
+# )
+# def create_image(
+#     request: schemas.Image,
+#     db: Session = Depends(database.get_db),
+#     current_user: schemas.User = Depends(oauth2.get_current_user),
+# ):
+#     return image.create(request, db)
 
 
 @router.get(
@@ -76,6 +97,27 @@ def update_image(
     return image.update(id, request, db)
 
 
+# @router.put("/update_image_gps/{image_id}")
+# async def update_image_gps_endpoint(image_id: int, latitude: float, longitude: float):
+#     # Retrieve the image details from the database using the image_id
+#     image = session.query(ImageModel).get(image_id)
+#     if image is None:
+#         raise HTTPException(status_code=404, detail="Image not found")
+
+#     # Update the GPS coordinates in the image details
+#     image.gps = GPS(latitude=latitude, longitude=longitude)
+
+#     # Update the location details based on the new coordinates
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(f"http://location_service:8000/get_location_details?latitude={latitude}&longitude={longitude}")
+#         location_data = response.json()
+
+#     image.location = Location(country=location_data['country'], data=location_data)
+
+#     # Save the updated image details back to the database
+#     session.commit()
+
+#     return {"message": f"Image {image_id} GPS coordinates updated successfully."}
 # @app.get(
 #     "/images",
 #     response_model=List[schemas.ImageOut],
