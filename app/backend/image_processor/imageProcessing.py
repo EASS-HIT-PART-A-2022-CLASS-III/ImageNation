@@ -1,6 +1,6 @@
 import base64
 import shutil
-from typing import List, Dict, Tuple, Union
+from typing import List, Tuple, Union, Dict
 from imagededup.methods import PHash
 from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -134,15 +134,15 @@ async def calculate_phash_value(image_data: bytes) -> str:
     return result
 
 
-# TODO###############need to modify not to have ImageModel#####################
-async def find_duplicate_images(images: Dict[str, ImageModel]) -> List[str]:
+async def find_duplicate_images(images: List[ImageModel]) -> List[str]:
     phasher = PHash()
     encoding_images = {}
-    for image_name, image_model in images.items():
-        if image_model.phash:
-            encoding_images[image_name] = image_model.phash
-        elif image_model.image:
-            encoding_images[image_name] = await calculate_phash_value(image_model.image)
+    for image in images.items():
+        if image.phash:
+            encoding_images[image.name] = image.phash
+        elif image.content:
+            temp_image = decode_base64(image.content)
+            encoding_images[image.name] = await calculate_phash_value(temp_image)
     duplicates = phasher.find_duplicates_to_remove(
         encoding_map=encoding_images, max_distance_threshold=12
     )
@@ -226,5 +226,4 @@ async def process_image_data(
         content=image_encoded,
         smallRoundContent=small_round_image,
     )
-    print(location)
     return image_obj

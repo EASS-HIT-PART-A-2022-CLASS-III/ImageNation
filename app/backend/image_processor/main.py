@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, status, Request
+from typing import List
 import imageProcessing, schemas
 
 
@@ -32,6 +33,14 @@ async def get_location_details(latitude: float, longitude: float) -> schemas.Loc
         latitude, longitude
     )
     return image_location_data
+
+
+@app.post("/find_duplicates", status_code=status.HTTP_200_OK)
+async def find_duplicates(images: List[schemas.ImageItem]):
+    duplicates = await imageProcessing.find_duplicate_images(images)
+    if not duplicates:
+        raise HTTPException(status_code=404, detail="No duplicates found")
+    return {"duplicates": duplicates}
 
 
 async def process_image_data_with_error_handling(
@@ -86,7 +95,9 @@ async def get_location_details_with_error_handling(
             latitude, longitude
         )
         if image_location_data is not None:
-            return image_location_data
+            country = imageProcessing.get_country_name(image_location_data)
+            location = schemas.Location(country=country, data=image_location_data)
+            return location
         else:
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST,
