@@ -1,14 +1,16 @@
 from fastapi import FastAPI, Request
-import models
 from database import engine
 from routers import image, user, authentication
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
-import httpx
+import models
+
 
 app = FastAPI(title="Image-Nation_Backend", version="0.2.0")
 
+
 models.Base.metadata.create_all(engine)
+
 
 app.include_router(authentication.router)
 app.include_router(user.router)
@@ -25,3 +27,8 @@ class ProccessingTimeMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(ProccessingTimeMiddleware)
+
+
+@app.get("/")
+async def root():
+    return {"message": "Backend is up and running!"}

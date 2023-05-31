@@ -1,6 +1,6 @@
 import base64
 import shutil
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union
 from imagededup.methods import PHash
 from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -209,7 +209,7 @@ async def process_image_data(
     phash_value = await calculate_phash_value(image_data)
     lat, lon, alt, dir, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, direction=dir)
-    file_size = float(len(image_data))
+    file_size_mb = len(image_data) / (1024 * 1024)
     image_encoded = encode_base64(image_data)
     small_image_data = await process_small_image_data(image_data)
     small_round_image = encode_base64(small_image_data)
@@ -219,7 +219,7 @@ async def process_image_data(
     image_obj = ImageModel(
         name=image_filename,
         phash=phash_value,
-        size=file_size,
+        size=file_size_mb,
         gps=gps_data.dict(),
         location=location,
         date=date,

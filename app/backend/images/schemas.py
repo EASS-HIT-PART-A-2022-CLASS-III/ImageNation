@@ -58,9 +58,7 @@ class UserBase(BaseModel):
 
 
 class UserOut(BaseModel):
-    name: str
     email: str
-    images: List[Image] = []
 
     class Config:
         orm_mode = True

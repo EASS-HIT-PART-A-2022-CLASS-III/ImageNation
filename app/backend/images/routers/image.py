@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 import database, schemas, oauth2, models
 from repository import image
-import httpx
+
 
 router = APIRouter(
     prefix="/images",
@@ -31,38 +31,17 @@ async def create_image(
     current_user_model: models.User = Depends(oauth2.get_current_user),
 ):
     current_user = schemas.UserBase.from_orm(current_user_model)
-    success_count = 0
-    for upload_image in upload_images:
-        image_data = await upload_image.read()
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "http://localhost:8801/process_image/",
-                files={
-                    "image": (
-                        upload_image.filename,
-                        image_data,
-                        upload_image.content_type,
-                    )
-                },
-            )
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-        processed_image = schemas.Image.parse_obj(response.json())
-        image.create(processed_image, db, current_user.id)
-        success_count += 1
-    return {"message": f"{success_count} images created successfully"}
-
-
-# @router.post(
-#     "/",
-#     status_code=status.HTTP_201_CREATED,
-# )
-# def create_image(
-#     request: schemas.Image,
-#     db: Session = Depends(database.get_db),
-#     current_user: schemas.User = Depends(oauth2.get_current_user),
-# ):
-#     return image.create(request, db)
+    success_count, error_messages = await image.process_and_create_images(
+        upload_images, db, current_user.id
+    )
+    if success_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=error_messages
+        )
+    return {
+        "message": f"{success_count} images created and added to the DB successfully",
+        "errors": error_messages,
+    }
 
 
 @router.get(
