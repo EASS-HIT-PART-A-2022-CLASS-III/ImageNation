@@ -3,7 +3,7 @@ import streamlit as st
 from app.frontend.utils import upload_images
 
 
-st.set_page_config(page_title="Image Uploadung", page_icon="??")
+st.set_page_config(page_title="Image Uploadung", page_icon="📮")
 st.markdown(
     """
     <style>
@@ -28,6 +28,7 @@ col1, col2 = st.columns([3, 1])
 uploaded_files = col1.file_uploader(
     "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
+
 
 upload_button = col2.button("Upload Images")
 
