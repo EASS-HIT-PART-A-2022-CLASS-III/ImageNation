@@ -3,6 +3,7 @@ import io
 import pandas as pd
 import base64
 import httpx
+from streamlit_extras.switch_page_button import switch_page
 
 API_URL = "http://localhost:8000"
 
@@ -94,8 +95,61 @@ def upload_images(uploaded_files):
     for uploaded_file in uploaded_files:
         file_bytes = io.BytesIO(uploaded_file.read())
         files_dict.append(
-            ("images", (uploaded_file.name, file_bytes, uploaded_file.type))
+            ("upload_images", (uploaded_file.name, file_bytes, uploaded_file.type))
         )
+    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     with httpx.Client() as client:
-        response = client.post(f"{API_URL}/images/", files=files_dict)
+        response = client.post(f"{API_URL}/images/", files=files_dict, headers=headers)
     return response
+
+
+async def login(email: str, password: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{API_URL}/login/", data={"username": email, "password": password}
+        )
+
+    if response.status_code == 200:
+        data = response.json()
+        token = data["access_token"]
+        if token is not None:
+            st.session_state["user"]["access_token"] = token
+            st.session_state["user"]["name"] = data["user_name"]
+            st.session_state["user"]["logged_in"] = True
+            switch_page("Home")
+        else:
+            st.session_state["user"][
+                "action_status"
+            ] = "Login failed. Please try again."
+
+    else:
+        st.session_state["user"]["logged_in"] = False
+        st.session_state["user"][
+            "action_status"
+        ] = "Login failed. Please check your credentials."
+
+
+async def signup(name: str, email: str, password: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{API_URL}/users/",
+            json={"name": name, "email": email, "password": password},
+        )
+    if response.status_code == 201:
+        st.session_state["user"]["action_status"] = "Sign up Successful"
+        st.session_state["user"]["logged_in"] = True
+        if email and password:
+            await login(email, password)
+    else:
+        st.session_state["user"]["logged_in"] = False
+        st.session_state["user"]["action_status"] = "Sign up Failed"
+
+
+def logout():
+    st.session_state["user"] = {
+        "name": None,
+        "logged_in": False,
+        "access_token": None,
+        "action_status": "Logout Successful",
+    }
+    switch_page("Home")
