@@ -7,11 +7,15 @@ from datetime import timedelta
 
 
 router = APIRouter(
+    prefix="/login",
     tags=["Authentication"],
 )
 
 
-@router.post("/login")
+@router.post(
+    "/",
+    status_code=status.HTTP_200_OK,
+)
 def login(
     request: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(database.get_db),
@@ -26,4 +30,8 @@ def login(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Incorrect Password"
         )
     access_token = jwt_token.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_name": user.name,
+    }

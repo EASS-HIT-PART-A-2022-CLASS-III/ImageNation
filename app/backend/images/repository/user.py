@@ -22,7 +22,3 @@ def show(id: int, db: Session):
             detail=f"User with the id {id} is not available",
         )
     return user
-
-
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
