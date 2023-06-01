@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image
 import io
 from app.frontend.utils import get_images, create_db_df, decode_base64, get_country_name
+from streamlit_extras.no_default_selectbox import selectbox
 
 
 st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
@@ -34,15 +35,22 @@ df = create_db_df(images_data)
 ###################################################################################
 def edit_image_data(df):
     image_names = df["name"].unique()
-    image_names = np.insert(image_names, 0, "Please select an image")
-    selected_image_name = st.selectbox(
-        "Select Image", image_names, label_visibility="collapsed"
+    # image_names = np.insert(image_names, 0, "Please select an image")
+    result = selectbox(
+        "Select Image",
+        image_names,
+        no_selection_label="<None>",
+        label_visibility="collapsed",
     )
+    # selected_image_name = st.selectbox(
+    #     "Select Image", image_names, label_visibility="collapsed"
+    # )
     edit_placeholder = st.empty()
 
-    if selected_image_name and selected_image_name != "Please select an image":
-        edit_placeholder.subheader(f"Editing {selected_image_name}")
-        selected_image_data = df[df["name"] == selected_image_name].iloc[0]
+    # if selected_image_name and selected_image_name != "Please select an image":
+    if result:
+        edit_placeholder.subheader(f"Editing {result}")
+        selected_image_data = df[df["name"] == result].iloc[0]
 
         encoded_content = selected_image_data["content"]
 

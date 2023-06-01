@@ -1,7 +1,20 @@
 from datetime import datetime
-import json
-from typing import List, Optional, Union, Literal
-from pydantic import BaseModel, DirectoryPath, Field
+from pydantic import BaseModel, Field
+
+# class ImageBase(BaseModel):
+#     name: str
+#     phash: str
+#     size: float
+
+# class ImageCreate(ImageBase):
+#     content: bytes
+
+# class Image(ImageBase):
+#     id: Optional[int] = None
+#     content: Optional[bytes] = Field(default=None)
+
+#     class Config:
+#         orm_mode = True
 
 
 class Location(BaseModel):
@@ -27,26 +40,3 @@ class ImageModel(BaseModel):
     smallRoundContent: str | None = Field(
         None, example="ThisIsASmallRoundImageInBase64Format"
     )
-
-
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, z):
-        if isinstance(z, datetime):
-            return str(z)
-        else:
-            return super().default(z)
-
-
-class SearchParams(BaseModel):
-    directory: DirectoryPath | List[DirectoryPath]
-    fast_search: bool = True
-    recursive: bool = True
-    similarity: Union[str, int, float, Literal["similar"]] = "duplicates"
-    px_size: int = 50
-    limit_extensions: bool = True
-    show_progress: bool = True
-    show_output: bool = False
-    move_to: Optional[str] = None
-    delete: bool = False
-    silent_del: bool = False
-    logs: bool = False
