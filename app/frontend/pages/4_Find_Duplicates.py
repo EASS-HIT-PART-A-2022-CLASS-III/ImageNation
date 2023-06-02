@@ -1,5 +1,5 @@
 import streamlit as st
-from app.frontend.utils import get_duplicates, delete_image
+from utils import get_duplicates, delete_image
 
 
 st.set_page_config(page_title="Find Duplicates", page_icon="👯‍♀️")
