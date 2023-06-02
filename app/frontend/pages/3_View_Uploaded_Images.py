@@ -5,7 +5,7 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from app.frontend.utils import get_images, create_db_df, decode_base64, load_data
+from utils import get_images, decode_base64, load_data, create_db_df
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")

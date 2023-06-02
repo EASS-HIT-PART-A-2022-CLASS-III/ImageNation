@@ -1,6 +1,5 @@
-import time
 import streamlit as st
-from app.frontend.utils import upload_images
+from utils import upload_images
 
 
 st.set_page_config(page_title="Image Uploadung", page_icon="📮")
