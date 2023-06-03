@@ -18,7 +18,7 @@ all_pages = [
 
 st.markdown("---")
 st.write("Welcome to my app!")
-st.write("Please navigate to the desired section using the sidebar.")
+
 
 if "user" not in st.session_state:
     st.session_state["user"] = {
@@ -27,7 +27,7 @@ if "user" not in st.session_state:
         "access_token": None,
         "action_status": None,
     }
-    st.sidebar.title("Welcome!")
+    st.sidebar.title(f"Please log in or sign up")
     show_pages([home_page])
 
 
@@ -46,7 +46,6 @@ else:
     )
 
     with st.sidebar.form(key="my_form"):
-        st.title(f"Please log in or sign up")
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
 

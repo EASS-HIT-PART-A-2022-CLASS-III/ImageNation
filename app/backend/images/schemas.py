@@ -81,6 +81,18 @@ class TokenData(BaseModel):
     email: str | None = None
 
 
+class ImageData(BaseModel):
+    name: str
+    phash: str
+    size: float
+    date: datetime
+    altitude: float
+    direction: float
+    latitude: float
+    longitude: float
+    country: str
+
+
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, z):
         if isinstance(z, datetime):

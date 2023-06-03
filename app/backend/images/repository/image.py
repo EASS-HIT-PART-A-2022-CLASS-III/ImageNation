@@ -1,5 +1,5 @@
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 import models, schemas
 import json
@@ -23,6 +23,33 @@ def show(id: int, db: Session):
             detail=f"Image with the id {id} is not available",
         )
     return image
+
+
+def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    images = (
+        db.query(models.Image)
+        .options(joinedload(models.Image.gps), joinedload(models.Image.location))
+        .filter(models.Image.user_id == user_id)
+        .all()
+    )
+    image_data_list = []
+    for image in images:
+        image_data = schemas.ImageData(
+            name=image.name,
+            phash=image.phash,
+            size=image.size,
+            date=image.date,
+            altitude=image.gps.altitude if image.gps else None,
+            direction=image.gps.direction if image.gps else None,
+            latitude=image.gps.latitude if image.gps else None,
+            longitude=image.gps.longitude if image.gps else None,
+            country=image.location.country if image.location else None,
+        )
+        image_data_list.append(image_data)
+    return image_data_list
 
 
 def create_gps(request: schemas.GPS, db: Session):
