@@ -47,12 +47,34 @@ async def create_image(
 @router.get(
     "/data/", response_model=List[schemas.ImageData], status_code=status.HTTP_200_OK
 )
-async def get_user_images_route(
+async def get_user_images_df(
     db: Session = Depends(database.get_db),
     current_user_model: models.User = Depends(oauth2.get_current_user),
 ):
     user_id = current_user_model.id
     return image.show_all_data(db, user_id)
+
+
+@router.get(
+    "/plot/", response_model=List[schemas.ImagePlot], status_code=status.HTTP_200_OK
+)
+async def get_user_images_plot(
+    db: Session = Depends(database.get_db),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user_model.id
+    return image.show_all_image_for_plot(db, user_id)
+
+
+@router.get(
+    "/map/", response_model=List[schemas.ImageMap], status_code=status.HTTP_200_OK
+)
+async def get_user_images_map(
+    db: Session = Depends(database.get_db),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user_model.id
+    return image.show_all_image_for_map(db, user_id)
 
 
 @router.get(

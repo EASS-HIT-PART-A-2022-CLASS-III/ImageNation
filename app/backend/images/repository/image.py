@@ -25,6 +25,48 @@ def show(id: int, db: Session):
     return image
 
 
+def show_all_image_for_plot(db: Session, user_id: int) -> List[schemas.ImagePlot]:
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
+    image_plot_list = []
+    for image in images:
+        image_plot = schemas.ImagePlot(
+            name=image.name,
+            country=image.location.country if image.location else None,
+            content=image.content,
+        )
+        image_plot_list.append(image_plot)
+    return image_plot_list
+
+
+def show_all_image_for_map(db: Session, user_id: int) -> List[schemas.ImageMap]:
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    images = (
+        db.query(models.Image)
+        .options(joinedload(models.Image.gps), joinedload(models.Image.location))
+        .filter(models.Image.user_id == user_id)
+        .all()
+    )
+    image_map_list = []
+    for image in images:
+        image_map = schemas.ImageMap(
+            name=image.name,
+            country=image.location.country if image.location else None,
+            direction=image.gps.direction if image.gps else None,
+            latitude=image.gps.latitude if image.gps else None,
+            longitude=image.gps.longitude if image.gps else None,
+            smallRoundContent=image.smallRoundContent,
+            content=image.content,
+            date=image.date,
+        )
+        image_map_list.append(image_map)
+    return image_map_list
+
+
 def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -47,6 +89,7 @@ def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
             latitude=image.gps.latitude if image.gps else None,
             longitude=image.gps.longitude if image.gps else None,
             country=image.location.country if image.location else None,
+            # smallRoundContent=image.smallRoundContent,
         )
         image_data_list.append(image_data)
     return image_data_list

@@ -93,6 +93,23 @@ class ImageData(BaseModel):
     country: str
 
 
+class ImagePlot(BaseModel):
+    name: str
+    country: str
+    content: str
+
+
+class ImageMap(BaseModel):
+    name: str
+    country: str
+    direction: float
+    latitude: float
+    longitude: float
+    smallRoundContent: str
+    content: str
+    date: datetime
+
+
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, z):
         if isinstance(z, datetime):
