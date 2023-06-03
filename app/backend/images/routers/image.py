@@ -45,6 +45,17 @@ async def create_image(
 
 
 @router.get(
+    "/data/", response_model=List[schemas.ImageData], status_code=status.HTTP_200_OK
+)
+async def get_user_images_route(
+    db: Session = Depends(database.get_db),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user_model.id
+    return image.show_all_data(db, user_id)
+
+
+@router.get(
     "/{id}",
     response_model=schemas.ImageOut,
     response_description="The image",

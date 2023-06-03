@@ -5,7 +5,7 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from utils import get_images, decode_base64, load_data, create_db_df
+from utils import get_images_data, decode_base64, load_data, create_db_df
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
@@ -42,26 +42,51 @@ imageView_radioButton = st.sidebar.selectbox(
 
 
 def view_images_content(df):
+    print(df)
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-        data_df = df.drop(columns=["content", "smallRoundContent"]).drop(
-            columns=df.columns[df.columns.str.startswith("data_")]
+
+        # column options for multiselect
+        column_options = df.columns.tolist()  # this now includes "name" as well
+
+        # set default columns to be the same as column options
+        default_columns = column_options
+
+        imageDetails_multiSelect = st.multiselect(
+            "Select which details to show",
+            options=column_options,
+            default=default_columns,
         )
 
-        column_options = [col for col in data_df.columns if col != "name"]
-        imageDetails_multiSelect = st.multiselect(
-            ":red[Select which details to show]",
-            options=column_options,
-            default=column_options,
-        )
-        st.write("press artibute name to sort by it.")
-        selected_columns = ["name"] + [
-            col.replace("gps.", "") for col in imageDetails_multiSelect
-        ]
-        data_df.columns = [col.replace("gps.", "") for col in data_df.columns]
+        st.write("Press attribute name to sort by it.")
+        selected_columns = imageDetails_multiSelect
         temp_df = df[selected_columns]
+
         st.dataframe(temp_df)
     st.success("Data Frame loaded!")
+
+
+# def view_images_content(df):
+#     with st.spinner("Loading Data Frame please wait..."):
+#         st.write("This is the details table content.")
+#         data_df = df.drop(columns=["content", "smallRoundContent"]).drop(
+#             columns=df.columns[df.columns.str.startswith("data_")]
+#         )
+
+#         column_options = [col for col in data_df.columns if col != "name"]
+#         imageDetails_multiSelect = st.multiselect(
+#             ":red[Select which details to show]",
+#             options=column_options,
+#             default=column_options,
+#         )
+#         st.write("press artibute name to sort by it.")
+#         selected_columns = ["name"] + [
+#             col.replace("gps.", "") for col in imageDetails_multiSelect
+#         ]
+#         data_df.columns = [col.replace("gps.", "") for col in data_df.columns]
+#         temp_df = df[selected_columns]
+#         st.dataframe(temp_df)
+#     st.success("Data Frame loaded!")
 
 
 def display_small_images(images_data):
@@ -151,14 +176,14 @@ def plot_images_on_map(df):
 
 
 df = load_data()
-images_data = get_images()
+# images_data = get_images_data()
 
 if imageView_radioButton == "Show details Table":
     view_images_content(df)
-elif imageView_radioButton == "Show small images":
-    display_small_images(images_data)
-elif imageView_radioButton == "Show images on map":
-    plot_images_on_map(df)
+# elif imageView_radioButton == "Show small images":
+# display_small_images(images_data)
+# elif imageView_radioButton == "Show images on map":
+#    plot_images_on_map(df)
 
 
 # TODO: add image grid like below

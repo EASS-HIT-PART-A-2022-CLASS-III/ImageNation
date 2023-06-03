@@ -4,23 +4,23 @@ import pandas as pd
 import base64
 import httpx
 from streamlit_extras.switch_page_button import switch_page
+import asyncio
 
 API_URL = "http://localhost:8000"
 
 
-@st.cache_data
 def load_data():
     with st.spinner("Loading Data..."):
-        images_data = get_images()
+        images_data = asyncio.run(get_images_data())
         df = create_db_df(images_data)
         st.success("Data Loaded!")
         return df
 
 
-@st.cache_data
-def get_images():
-    with httpx.Client() as client:
-        response = client.get(f"{API_URL}/images")
+async def get_images_data():
+    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{API_URL}/images/data/", headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
@@ -29,18 +29,7 @@ def get_images():
 
 
 def create_db_df(images_data):
-    df = pd.json_normalize(images_data, sep="_")
-    if "gps" in df.columns:
-        df = df.drop(columns="gps")
-    if "location" in df.columns:
-        df["location"] = df["location"].apply(
-            lambda loc: loc["country"]
-            if isinstance(loc, dict) and "country" in loc
-            else None
-        )
-    df.columns = [
-        col.replace("gps_", "").replace("location_", "") for col in df.columns
-    ]
+    df = pd.DataFrame(images_data)
     return df
 
 
