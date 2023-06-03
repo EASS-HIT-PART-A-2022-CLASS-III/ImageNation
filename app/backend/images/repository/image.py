@@ -79,13 +79,14 @@ def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
         .filter(models.Image.user_id == user_id)
         .all()
     )
+
     if not images:
         raise HTTPException(status_code=404, detail="No images found for user")
     image_data_list = []
     for image in images:
         image_data = schemas.ImageData(
+            smallRoundContent=image.smallRoundContent,
             name=image.name,
-            phash=image.phash,
             size=image.size,
             date=image.date,
             altitude=image.gps.altitude if image.gps else 0,
@@ -93,7 +94,7 @@ def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
             latitude=image.gps.latitude if image.gps else 0,
             longitude=image.gps.longitude if image.gps else 0,
             country=image.location.country if image.location else "Unknown",
-            # smallRoundContent=image.smallRoundContent,
+            phash=image.phash,
         )
         image_data_list.append(image_data)
 
