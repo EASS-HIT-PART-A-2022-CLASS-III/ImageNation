@@ -5,13 +5,8 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from utils import (
-    decode_base64,
-    load_data_for_plot,
-    calculate_center,
-    load_data_for_df,
-    load_data_for_map,
-)
+from utils import decode_base64, load_data_for_plot, calculate_center, load_data_for_df, load_data_for_map
+
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
@@ -40,7 +35,10 @@ imageView_radioButton = st.sidebar.selectbox(
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-        column_options = df.columns.tolist()
+        df = df.rename(columns={"smallRoundContent": "Preview Image"})
+        column_options = [
+            col for col in df.columns.tolist() if col != "Preview Image"
+        ]  
         default_columns = column_options
         imageDetails_multiSelect = st.multiselect(
             "Select which details to show",
@@ -48,9 +46,20 @@ def view_images_content(df):
             default=default_columns,
         )
         st.write("Press attribute name to sort by it.")
-        selected_columns = imageDetails_multiSelect
+        selected_columns = [
+            "Preview Image"
+        ] + imageDetails_multiSelect  
         temp_df = df[selected_columns]
-        st.dataframe(temp_df)
+        temp_df["Preview Image"] = temp_df["Preview Image"].apply(
+            lambda x: f"data:image/jpeg;base64,{x}"
+        )
+        st.dataframe(
+            temp_df,
+            column_config={
+                "Preview Image": st.column_config.ImageColumn("Preview Image")
+            },
+            hide_index=False,
+        )
     st.success("Data Frame loaded!")
 
 

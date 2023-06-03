@@ -3,21 +3,23 @@ import asyncio
 from utils import logout, login, signup, add_bg_from_local
 from st_pages import Page, show_pages
 
-st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
-add_bg_from_local("backgrond_Image.jpg")
 
-home_page = Page("Home.py", "Home", "🏠")
+st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
+add_bg_from_local("bg_new.jpg")
+
+
+home_page = Page("Home.py", "Home")
 all_pages = [
-    Page("Home.py", "Home", "🏠"),
+    Page("Home.py", "Home"),
     Page("pages/1_Upload_Images.py", "Uplaod Images"),
     Page("pages/2_Edit_Photos.py", "Edits Images"),
     Page("pages/3_View_Uploaded_Images.py", "View Uploaded Images"),
-    Page("pages/4_Find_Duplicates.py", "Find Duplicates", "👯‍♀️"),
+    Page("pages/4_Find_Duplicates.py", "Find Duplicates"),
 ]
 
 
-st.markdown("---")
-st.write("Welcome to my app!")
+# st.markdown("---")
+# st.write("Welcome to my app!")
 
 
 if "user" not in st.session_state:

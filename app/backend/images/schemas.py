@@ -82,8 +82,8 @@ class TokenData(BaseModel):
 
 
 class ImageData(BaseModel):
+    smallRoundContent: str
     name: str
-    phash: str
     size: float
     date: datetime
     altitude: float
@@ -91,6 +91,7 @@ class ImageData(BaseModel):
     latitude: float
     longitude: float
     country: str
+    phash: str
 
     class config:
         orm_mode = True
