@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
-from schemas import ImageModel, GPS, Location
+from schemas import ImageModel, GPS, Location, ImageDup
 import tempfile
 from geopy import Point
 from geopy.geocoders import Nominatim
@@ -134,18 +134,17 @@ async def calculate_phash_value(image_data: bytes) -> str:
     return result
 
 
-async def find_duplicate_images(images: List[ImageModel]) -> List[str]:
+async def find_duplicate_images(images: List[ImageDup]) -> List[str]:
     phasher = PHash()
     encoding_images = {}
-    for image in images.items():
+    for image in images:
         if image.phash:
             encoding_images[image.name] = image.phash
-        elif image.content:
-            temp_image = decode_base64(image.content)
-            encoding_images[image.name] = await calculate_phash_value(temp_image)
     duplicates = phasher.find_duplicates_to_remove(
         encoding_map=encoding_images, max_distance_threshold=12
     )
+    if not duplicates:
+        return []
     return duplicates
 
 

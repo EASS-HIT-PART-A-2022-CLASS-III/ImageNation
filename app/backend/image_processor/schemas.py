@@ -40,3 +40,8 @@ class ImageModel(BaseModel):
     smallRoundContent: str | None = Field(
         None, example="ThisIsASmallRoundImageInBase64Format"
     )
+
+
+class ImageDup(BaseModel):
+    name: str
+    phash: str
