@@ -9,18 +9,30 @@ import asyncio
 API_URL = "http://localhost:8000"
 
 
-def load_data():
+def load_data_for_df():
     with st.spinner("Loading Data..."):
-        images_data = asyncio.run(get_images_data())
+        images_data = asyncio.run(get_images_data("images/data/"))
         df = create_db_df(images_data)
-        st.success("Data Loaded!")
         return df
 
 
-async def get_images_data():
+def load_data_for_plot():
+    with st.spinner("Loading Data..."):
+        images_data = asyncio.run(get_images_data("images/plot/"))
+        return images_data
+
+
+def load_data_for_map():
+    with st.spinner("Loading Data..."):
+        images_data = asyncio.run(get_images_data("images/map/"))
+        df = create_db_df(images_data)
+        return df
+
+
+async def get_images_data(endpoint):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{API_URL}/images/data/", headers=headers)
+        response = await client.get(f"{API_URL}/{endpoint}", headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
@@ -126,6 +138,12 @@ def logout():
         "action_status": "Logout Successful",
     }
     switch_page("Home")
+
+
+def calculate_center(df):
+    average_latitude = df["latitude"].mean()
+    average_longitude = df["longitude"].mean()
+    return [average_latitude, average_longitude]
 
 
 def add_bg_from_local(image_file):

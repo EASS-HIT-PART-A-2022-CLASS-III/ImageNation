@@ -5,7 +5,13 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from utils import get_images_data, decode_base64, load_data, create_db_df
+from utils import (
+    decode_base64,
+    load_data_for_plot,
+    calculate_center,
+    load_data_for_df,
+    load_data_for_map,
+)
 
 
 st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
@@ -30,96 +36,67 @@ imageView_radioButton = st.sidebar.selectbox(
     index=0,
 )
 
-# TODO: check if streamlit_pandas is needed
-# def view_image_details():
-#     with st.spinner("Loading Data Frame please wait..."):
-#        create_data = {
-#            "name": "multiselect"
-#        }
-#        all_widgets = sp.create_widgets(df, create_data)
-#        res = sp.filter_df(df, all_widgets)
-#        st.write(res)
-
 
 def view_images_content(df):
-    print(df)
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
-
-        # column options for multiselect
-        column_options = df.columns.tolist()  # this now includes "name" as well
-
-        # set default columns to be the same as column options
+        column_options = df.columns.tolist()
         default_columns = column_options
-
         imageDetails_multiSelect = st.multiselect(
             "Select which details to show",
             options=column_options,
             default=default_columns,
         )
-
         st.write("Press attribute name to sort by it.")
         selected_columns = imageDetails_multiSelect
         temp_df = df[selected_columns]
-
         st.dataframe(temp_df)
     st.success("Data Frame loaded!")
 
 
-# def view_images_content(df):
-#     with st.spinner("Loading Data Frame please wait..."):
-#         st.write("This is the details table content.")
-#         data_df = df.drop(columns=["content", "smallRoundContent"]).drop(
-#             columns=df.columns[df.columns.str.startswith("data_")]
-#         )
-
-#         column_options = [col for col in data_df.columns if col != "name"]
-#         imageDetails_multiSelect = st.multiselect(
-#             ":red[Select which details to show]",
-#             options=column_options,
-#             default=column_options,
-#         )
-#         st.write("press artibute name to sort by it.")
-#         selected_columns = ["name"] + [
-#             col.replace("gps.", "") for col in imageDetails_multiSelect
-#         ]
-#         data_df.columns = [col.replace("gps.", "") for col in data_df.columns]
-#         temp_df = df[selected_columns]
-#         st.dataframe(temp_df)
-#     st.success("Data Frame loaded!")
-
-
 def display_small_images(images_data):
-    instractions_placeholder = st.empty()
     with st.spinner("Loading Images..."):
         warnings = []
-        cols = st.columns(3)
-        for i, image_data in enumerate(images_data):
-            encoded_content = image_data["content"]
-            image_bytes = decode_base64(encoded_content)
-            if image_bytes:
-                try:
-                    image = Image.open(io.BytesIO(image_bytes))
-                    cols[i % 3].image(
-                        image, caption=image_data["name"], use_column_width=True
+        user_grid_size = st.number_input("Grid Width", 1, 8, 3)
+        countries = list(set([img["country"] for img in images_data]))
+        selected_countries = st.multiselect(
+            "Select Countries", countries, default=countries
+        )
+        instractions_placeholder = st.empty()
+        filtered_images_data = [
+            img for img in images_data if img["country"] in selected_countries
+        ]
+        groups = []
+        for i in range(0, len(filtered_images_data), user_grid_size):
+            groups.append(filtered_images_data[i : i + user_grid_size])
+        for group in groups:
+            cols = st.columns(user_grid_size)
+            for i, image_data in enumerate(group):
+                encoded_content = image_data["content"]
+                image_bytes = decode_base64(encoded_content)
+                if image_bytes:
+                    try:
+                        image = Image.open(io.BytesIO(image_bytes))
+                        cols[i].image(
+                            image,
+                            caption=f"{image_data['name']}, {image_data['country']}",
+                            use_column_width=True,
+                        )
+                    except:
+                        warnings.append(
+                            f"Failed to display image: {image_data['name']}"
+                        )
+                else:
+                    warnings.append(
+                        f"Failed to decode image content: {image_data['name']}"
                     )
-                except:
-                    warnings.append(f"Failed to display image: {image_data['name']}")
-            else:
-                warnings.append(f"Failed to decode image content: {image_data['name']}")
         st.success("Images loaded!")
         instractions_placeholder.write(
-            ":green[press on the arrows on the top right corner to see the images in full size]"
+            "Press on the arrows on the top right corner to see the images in full size"
         )
         if warnings:
             for warning in warnings:
                 st.warning(warning)
-
-
-def calculate_center(df):
-    average_latitude = df["latitude"].mean()
-    average_longitude = df["longitude"].mean()
-    return [average_latitude, average_longitude]
 
 
 def process_image(row):
@@ -175,49 +152,12 @@ def plot_images_on_map(df):
             st.warning(warning)
 
 
-df = load_data()
-# images_data = get_images_data()
-
 if imageView_radioButton == "Show details Table":
+    df = load_data_for_df()
     view_images_content(df)
-# elif imageView_radioButton == "Show small images":
-# display_small_images(images_data)
-# elif imageView_radioButton == "Show images on map":
-#    plot_images_on_map(df)
-
-
-# TODO: add image grid like below
-# st.title("Demo for Image Grid")
-
-# @st.cache(allow_output_mutation=True)
-# def load_images():
-#     image_files = glob.glob("images/*/*.jpg")
-#     manuscripts = []
-#     for image_file in image_files:
-#         image_file = image_file.replace("\\", "/")
-#         parts = image_file.split("/")
-#         if parts[1] not in manuscripts:
-#             manuscripts.append(parts[1])
-#     manuscripts.sort()
-#     return image_files, manuscripts
-
-# images, manuscripts = load_images()
-
-# manuscripts = st.multiselect("Select Manuscript", manuscripts)
-
-# view_images = []
-# for image in images:
-#     if any(manuscript in image for manuscript in manuscripts):
-#         view_images.append(image)
-
-# n = st.number_input("Grid Width", 1, 5, 2)
-
-# groups = []
-# for i in range(0, len(view_images), n):
-#     groups.append(view_images[i:i+n])
-
-
-# for group in groups:
-#     cols = st.columns(n)
-#     for i, image in enumerate(group):
-#         cols[i].image(image)
+elif imageView_radioButton == "Show small images":
+    images_data = load_data_for_plot()
+    display_small_images(images_data)
+elif imageView_radioButton == "Show images on map":
+    images_map = load_data_for_map()
+    plot_images_on_map(images_map)
