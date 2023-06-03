@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import upload_images
+from utils import upload_images_async
 
 
 st.set_page_config(page_title="Image Uploadung", page_icon="📮")
@@ -28,9 +28,11 @@ uploaded_files = col1.file_uploader(
 upload_button = col2.button("Upload Images")
 
 if upload_button:
-    with st.spinner("Uploading Images..."):
-        if uploaded_files:
-            response = upload_images(uploaded_files)
+    try:
+        if not uploaded_files:
+            st.warning("Please upload at least one image.")
+        else:
+            response = upload_images_async(uploaded_files)
             if response.status_code == 201:
                 col2.image("boratGreat.gif", use_column_width=True)
                 col1.success(
@@ -41,3 +43,5 @@ if upload_button:
                     cols[i % 3].image(file, width=150, caption=file.name)
             else:
                 st.error("Failed to upload images.")
+    except Exception as e:
+        st.error(f"Failed to upload images. Error: {e}")

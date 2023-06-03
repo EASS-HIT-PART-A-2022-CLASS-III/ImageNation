@@ -57,7 +57,8 @@ def view_images_content(df):
 def display_small_images(images_data):
     with st.spinner("Loading Images..."):
         warnings = []
-        user_grid_size = st.number_input("Grid Width", 1, 8, 3)
+        col1, col2, col3 = st.columns(3)
+        user_grid_size = col1.number_input("Grid Width", 1, 8, 3)
         countries = list(set([img["country"] for img in images_data]))
         selected_countries = st.multiselect(
             "Select Countries", countries, default=countries
@@ -134,6 +135,8 @@ def plot_images_on_map(df):
         m = folium.Map(
             location=center,
             zoom_start=3,
+            max_zoom=18,
+            min_zoom=1,
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             attr="Esri",
         )
@@ -152,12 +155,15 @@ def plot_images_on_map(df):
             st.warning(warning)
 
 
-if imageView_radioButton == "Show details Table":
-    df = load_data_for_df()
-    view_images_content(df)
-elif imageView_radioButton == "Show small images":
-    images_data = load_data_for_plot()
-    display_small_images(images_data)
-elif imageView_radioButton == "Show images on map":
-    images_map = load_data_for_map()
-    plot_images_on_map(images_map)
+try:
+    if imageView_radioButton == "Show details Table":
+        df = load_data_for_df()
+        view_images_content(df)
+    elif imageView_radioButton == "Show small images":
+        images_data = load_data_for_plot()
+        display_small_images(images_data)
+    elif imageView_radioButton == "Show images on map":
+        images_map = load_data_for_map()
+        plot_images_on_map(images_map)
+except Exception as e:
+    st.error(e)

@@ -55,9 +55,18 @@ def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
 
 
-def get_duplicates():
-    with httpx.Client() as client:
-        response = client.get(f"{API_URL}/findDuplicateImages")
+def get_duplicates_async():
+    with st.spinner("Loading Data..."):
+        res = asyncio.run(get_duplicates())
+        return res
+
+
+async def get_duplicates():
+    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{API_URL}/images/find_duplicates/", headers=headers
+        )
         if response.status_code == 200:
             return response.json()
         else:
@@ -65,9 +74,12 @@ def get_duplicates():
             return []
 
 
-def delete_image(image_name):
-    with httpx.Client() as client:
-        response = client.delete(f"{API_URL}/deleteImage/{image_name}")
+async def delete_image(image_name):
+    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(
+            f"{API_URL}/images/{image_name}", headers=headers
+        )
         if response.status_code == 200:
             return response.json()
         else:
@@ -75,7 +87,13 @@ def delete_image(image_name):
             return None
 
 
-def upload_images(uploaded_files):
+def upload_images_async(uploaded_files):
+    with st.spinner("Loading Data..."):
+        res = asyncio.run(upload_images(uploaded_files))
+        return res
+
+
+async def upload_images(uploaded_files):
     files_dict = []
     for uploaded_file in uploaded_files:
         file_bytes = io.BytesIO(uploaded_file.read())
@@ -83,8 +101,10 @@ def upload_images(uploaded_files):
             ("upload_images", (uploaded_file.name, file_bytes, uploaded_file.type))
         )
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
-    with httpx.Client() as client:
-        response = client.post(f"{API_URL}/images/", files=files_dict, headers=headers)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{API_URL}/images/", files=files_dict, headers=headers
+        )
     return response
 
 

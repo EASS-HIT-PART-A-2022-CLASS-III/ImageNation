@@ -24,7 +24,7 @@ async def process_image_file(image: UploadFile = File(...)) -> schemas.ImageMode
 
 
 @app.get(
-    "/get_location_details",
+    "/get_location_details/",
     status_code=status.HTTP_200_OK,
     response_model=schemas.Location,
 )
@@ -35,11 +35,9 @@ async def get_location_details(latitude: float, longitude: float) -> schemas.Loc
     return image_location_data
 
 
-@app.post("/find_duplicates", status_code=status.HTTP_200_OK)
-async def find_duplicates(images: List[schemas.ImageModel]):
+@app.post("/find_duplicates/", status_code=status.HTTP_200_OK)
+async def find_duplicates(images: List[schemas.ImageDup]):
     duplicates = await imageProcessing.find_duplicate_images(images)
-    if not duplicates:
-        raise HTTPException(status_code=404, detail="No duplicates found")
     return {"duplicates": duplicates}
 
 

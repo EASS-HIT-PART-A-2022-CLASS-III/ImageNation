@@ -92,11 +92,17 @@ class ImageData(BaseModel):
     longitude: float
     country: str
 
+    class config:
+        orm_mode = True
+
 
 class ImagePlot(BaseModel):
     name: str
     country: str
     content: str
+
+    class Config:
+        orm_mode = True
 
 
 class ImageMap(BaseModel):
@@ -108,6 +114,17 @@ class ImageMap(BaseModel):
     smallRoundContent: str
     content: str
     date: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ImageDup(BaseModel):
+    name: str
+    phash: str
+
+    class Config:
+        orm_mode = True
 
 
 class DateTimeEncoder(json.JSONEncoder):

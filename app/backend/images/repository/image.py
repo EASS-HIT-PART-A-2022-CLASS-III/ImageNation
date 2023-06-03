@@ -5,6 +5,8 @@ import models, schemas
 import json
 import httpx
 
+API_URL = "http://localhost:8801"
+
 
 def show_all(db: Session):
     images = db.query(models.Image).all()
@@ -26,15 +28,19 @@ def show(id: int, db: Session):
 
 
 def show_all_image_for_plot(db: Session, user_id: int) -> List[schemas.ImagePlot]:
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
+    images = (
+        db.query(models.Image)
+        .options(joinedload(models.Image.location))
+        .filter(models.Image.user_id == user_id)
+        .all()
+    )
+    if not images:
+        raise HTTPException(status_code=404, detail="No images found for user")
     image_plot_list = []
     for image in images:
         image_plot = schemas.ImagePlot(
             name=image.name,
-            country=image.location.country if image.location else None,
+            country=image.location.country if image.location else "Unknown",
             content=image.content,
         )
         image_plot_list.append(image_plot)
@@ -42,23 +48,22 @@ def show_all_image_for_plot(db: Session, user_id: int) -> List[schemas.ImagePlot
 
 
 def show_all_image_for_map(db: Session, user_id: int) -> List[schemas.ImageMap]:
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
     images = (
         db.query(models.Image)
         .options(joinedload(models.Image.gps), joinedload(models.Image.location))
         .filter(models.Image.user_id == user_id)
         .all()
     )
+    if not images:
+        raise HTTPException(status_code=404, detail="No images found for user")
     image_map_list = []
     for image in images:
         image_map = schemas.ImageMap(
             name=image.name,
-            country=image.location.country if image.location else None,
-            direction=image.gps.direction if image.gps else None,
-            latitude=image.gps.latitude if image.gps else None,
-            longitude=image.gps.longitude if image.gps else None,
+            country=image.location.country if image.location else "Unknown",
+            direction=image.gps.direction if image.gps else 0,
+            latitude=image.gps.latitude if image.gps else 0,
+            longitude=image.gps.longitude if image.gps else 0,
             smallRoundContent=image.smallRoundContent,
             content=image.content,
             date=image.date,
@@ -68,15 +73,14 @@ def show_all_image_for_map(db: Session, user_id: int) -> List[schemas.ImageMap]:
 
 
 def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
     images = (
         db.query(models.Image)
         .options(joinedload(models.Image.gps), joinedload(models.Image.location))
         .filter(models.Image.user_id == user_id)
         .all()
     )
+    if not images:
+        raise HTTPException(status_code=404, detail="No images found for user")
     image_data_list = []
     for image in images:
         image_data = schemas.ImageData(
@@ -84,14 +88,15 @@ def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
             phash=image.phash,
             size=image.size,
             date=image.date,
-            altitude=image.gps.altitude if image.gps else None,
-            direction=image.gps.direction if image.gps else None,
-            latitude=image.gps.latitude if image.gps else None,
-            longitude=image.gps.longitude if image.gps else None,
-            country=image.location.country if image.location else None,
+            altitude=image.gps.altitude if image.gps else 0,
+            direction=image.gps.direction if image.gps else 0,
+            latitude=image.gps.latitude if image.gps else 0,
+            longitude=image.gps.longitude if image.gps else 0,
+            country=image.location.country if image.location else "Unknown",
             # smallRoundContent=image.smallRoundContent,
         )
         image_data_list.append(image_data)
+
     return image_data_list
 
 
@@ -174,6 +179,32 @@ def update(id: int, request: schemas.Image, db: Session):
     return {"message": f"image with the id: {id} updated"}
 
 
+async def show_all_duplicates(db: Session, user_id: int):
+    images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
+    if not images:
+        raise HTTPException(status_code=404, detail="No images found for user")
+    image_dups = []
+    for image in images:
+        image_dup = schemas.ImageDup(name=image.name, phash=image.phash)
+        image_dups.append(image_dup.dict())
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{API_URL}/find_duplicates/",
+                json=image_dups,
+            )
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="No duplicates found"
+            )
+        return response.json()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service unavailable",
+        )
+
+
 async def process_and_create_images(
     upload_images: List[UploadFile], db: Session, current_user_id: int
 ):
@@ -184,7 +215,7 @@ async def process_and_create_images(
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "http://localhost:8801/process_image/",
+                    f"{API_URL}/process_image/",
                     files={
                         "image": (
                             upload_image.filename,

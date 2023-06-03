@@ -78,6 +78,19 @@ async def get_user_images_map(
 
 
 @router.get(
+    "/find_duplicates/",
+    response_description="The duplicate images",
+    status_code=status.HTTP_200_OK,
+)
+async def find_duplicate(
+    db: Session = Depends(database.get_db),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user_model.id
+    return await image.show_all_duplicates(db, user_id)
+
+
+@router.get(
     "/{id}",
     response_model=schemas.ImageOut,
     response_description="The image",
@@ -221,16 +234,3 @@ def update_image(
 #     else:
 #         database[image_name] = image.dict()
 #         return {"status": "success", "message": f"{image_name} updated"}
-
-# @app.get(
-#     "/findDuplicateImages",
-#     tags=["Dup"],
-#     response_description="The duplicate images",
-#     status_code=status.HTTP_200_OK,
-# )
-# async def find_duplicate():
-#     if database:
-#         duplicates = await find_duplicate_images(database)
-#         return {"duplicates": duplicates}
-#     else:
-#         raise HTTPException(status_code=404, detail=f"No images found")
