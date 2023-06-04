@@ -11,7 +11,7 @@ from utils import create_db_df, decode_base64
 from streamlit_extras.no_default_selectbox import selectbox
 
 
-st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️")
+st.set_page_config(page_title="IMAGE EDIT'S", page_icon="🛠️", layout="wide")
 
 st.markdown(
     """

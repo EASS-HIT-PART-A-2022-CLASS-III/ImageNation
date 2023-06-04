@@ -2,7 +2,7 @@ import streamlit as st
 from utils import upload_images_async
 
 
-st.set_page_config(page_title="Image Uploadung", page_icon="📮")
+st.set_page_config(page_title="Image Uploadung", page_icon="📮", layout="wide", layout="wide")
 st.markdown(
     """
     <style>

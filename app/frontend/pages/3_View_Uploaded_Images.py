@@ -9,7 +9,7 @@ from utils import decode_base64, load_data_for_plot, calculate_center, load_data
 
 
 
-st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
+st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️", layout="wide")
 st.markdown(
     """
     <style>

@@ -184,10 +184,10 @@ def add_bg_from_local(image_file):
         }}
     </style>
 
-    <h1 style='text-align: left; pointer-events: none; color: black;'>
+    <h1 style='text-align: center; pointer-events: none; color: black;'>
     Welcome To IMAGE-NATION
     </h1>
-    <h2 style='text-align: left; pointer-events: none; color: black;'>
+    <h2 style='text-align: center; pointer-events: none; color: black;'>
     Are you ready to re-explore the world?
     </h2>
 

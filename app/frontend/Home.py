@@ -4,7 +4,7 @@ from utils import logout, login, signup, add_bg_from_local
 from st_pages import Page, show_pages
 
 
-st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍")
+st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍", layout="wide", menu_items={'Get Help': 'https://www.extremelycoolapp.com/help',      'Report a bug': "https://www.extremelycoolapp.com/bug", 'About': "# This is a header. This is an *extremely* cool app!"})
 add_bg_from_local("bg_new.jpg")
 
 
