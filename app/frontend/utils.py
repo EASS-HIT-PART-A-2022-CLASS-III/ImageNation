@@ -56,7 +56,7 @@ def get_images_names():
         return image_names
 
 
-def get_image_for_edit(image_name):
+def get_image_for_edit(image_name: str):
     with st.spinner("Loading Data..."):
         image = asyncio.run(get_images_data(f"images/edit/{image_name}/"))
         return image
@@ -73,7 +73,7 @@ async def get_images_data(endpoint: str):
             return []
 
 
-def create_db_df(images_data):
+def create_db_df(images_data: list):
     df = pd.DataFrame(images_data)
     return df
 
@@ -88,13 +88,13 @@ def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
 
 
-def delete_image_async(image_name):
+def delete_image_async(image_name: str):
     with st.spinner("Deleting Images..."):
         res = asyncio.run(delete_image(image_name))
         return res
 
 
-async def delete_image(image_name):
+async def delete_image(image_name: str):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
         response = await client.delete(
@@ -107,13 +107,32 @@ async def delete_image(image_name):
             return None
 
 
-def upload_images_async(uploaded_files):
+def update_image_async(image_id: int, image: dict):
+    with st.spinner("Updating Images..."):
+        res = asyncio.run(update_image(image_id, image))
+        return res
+
+
+async def update_image(image_id: int, image: dict):
+    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
+    async with httpx.AsyncClient() as client:
+        response = await client.put(
+            f"{API_URL}/images/{image_id}/", headers=headers, json=image
+        )
+        if response.status_code == 202:
+            return {"message": f"image with the id: {image_id} updated"}
+        else:
+            st.error(f"Failed to update id: {image_id}")
+            return None
+
+
+def upload_images_async(uploaded_files: list):
     with st.spinner("Loading Data..."):
         res = asyncio.run(upload_images(uploaded_files))
         return res
 
 
-async def upload_images(uploaded_files):
+async def upload_images(uploaded_files: list):
     files_dict = []
     for uploaded_file in uploaded_files:
         file_bytes = io.BytesIO(uploaded_file.read())
@@ -133,7 +152,6 @@ async def login(email: str, password: str):
         response = await client.post(
             f"{API_URL}/login/", data={"username": email, "password": password}
         )
-
     if response.status_code == 200:
         data = response.json()
         token = data["access_token"]
@@ -147,7 +165,6 @@ async def login(email: str, password: str):
                 "action_status"
             ] = "Login failed. Please try again."
             st.error("Login failed. Please try again.")
-
     else:
         st.session_state["user"]["logged_in"] = False
         st.session_state["user"][
@@ -182,13 +199,13 @@ def logout():
     switch_page("Home")
 
 
-def calculate_center(df):
+def calculate_center(df: pd.DataFrame):
     average_latitude = df["latitude"].mean()
     average_longitude = df["longitude"].mean()
     return [average_latitude, average_longitude]
 
 
-def add_bg_from_local(image_file):
+def add_bg_from_local(image_file: str):
     with open(image_file, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read())
     st.markdown(
@@ -206,10 +223,10 @@ def add_bg_from_local(image_file):
         }}
     </style>
 
-    <h1 style='text-align: center; pointer-events: none; color: black;'>
+    <h1 style='text-align: center;font-size:70px; pointer-events: none; color: #2b2a2a;'>
     Welcome To IMAGE-NATION
     </h1>
-    <h2 style='text-align: center; pointer-events: none; color: black;'>
+    <h2 style='text-align: center; pointer-events: none; color: #2b2a2a;'>
     Are you ready to re-explore the world?
     </h2>
 

@@ -5,7 +5,12 @@ from streamlit_folium import folium_static
 import numpy as np
 from PIL import Image
 import io
-from utils import get_images_names, decode_base64, get_image_for_edit
+from utils import (
+    get_images_names,
+    decode_base64,
+    get_image_for_edit,
+    update_image_async,
+)
 from streamlit_extras.no_default_selectbox import selectbox
 
 
@@ -19,17 +24,18 @@ st.markdown(
         visibility: hidden;
     }
     </style>
-
-    <h1 style='text-align: center; color: red;'>Edit Image Data</h1>
+    <h1 style='text-align: center;font-size:50px; color: white;'>Edit Image Data</h1>
     """,
     unsafe_allow_html=True,
 )
 
+st.write("---")
+
 
 def edit_image_data(images_names):
-    col1, col2, _, _ = st.columns([1, 1, 1, 1])
+    col1, col2, _ = st.columns([1, 1, 2])
     select_placeholder = col1.empty()
-    select_placeholder.write("select image from the list:")
+    select_placeholder.write(":red[please select image from the list]")
     with col2:
         result = selectbox(
             "Select Image",
@@ -37,25 +43,30 @@ def edit_image_data(images_names):
             no_selection_label="<None>",
             label_visibility="collapsed",
         )
-    edit_placeholder = st.empty()
-
+    st.write("---")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    edit_placeholder = col1.empty()
+    image_name_placeholder = col2.empty()
+    image_placeholder = col3.empty()
+    col2.subheader("")
+    col2.write("")
+    col2.write("")
+    col2.write("")
+    col2.write("")
     if result:
-        nameCol, _, _ = st.columns([1, 1, 1])
-        name_placeholder = nameCol.empty()
-        select_placeholder.write("Image selected:")
-        col1, col2, col3 = st.columns([1, 1, 1])
-
-        edit_placeholder.subheader(f"Editing {result}")
+        select_placeholder.write(":green[Image selected]")
+        edit_placeholder.subheader(f"Editing:")
+        image_name_placeholder.subheader(f"{result}")
         image_for_edit = get_image_for_edit(result)
         image_bytes = decode_base64(image_for_edit["content"])
         if image_bytes:
             try:
                 image = Image.open(io.BytesIO(image_bytes))
                 caption = f"{image_for_edit['name']}"
-                col3.image(image, caption=caption, use_column_width=True)
+                image_placeholder.image(image, caption=caption, width=300)
             except:
                 pass
-        name_placeholder.text_input("Image Name", image_for_edit["name"])
+        edit_name = col1.text_input("Image Name", image_for_edit["name"])
         if image_for_edit["date"]:
             selected_datetime = datetime.strptime(
                 image_for_edit["date"], "%Y-%m-%dT%H:%M:%S"
@@ -95,10 +106,8 @@ def edit_image_data(images_names):
             icon=folium.Icon(icon="camera", color="red"),
         ).add_to(m)
         folium_static(m)
-
-        # Update the latitude and longitude inputs with the new values when the form is submitted
         with st.form("Edit Image Data", clear_on_submit=True):
-            st.write(name_placeholder)
+            st.write(edit_name)
             st.write(new_date)
             st.write(new_time)
             st.write(marker.location[0])
@@ -107,7 +116,7 @@ def edit_image_data(images_names):
             form_state = st.form_submit_button("Submit")
             if form_state:
                 if (
-                    name_placeholder == image_for_edit["name"]
+                    edit_name == image_for_edit["name"]
                     and new_date == selected_date
                     and new_time == selected_time
                     and marker.location[0] == image_for_edit["latitude"]
@@ -128,18 +137,17 @@ def edit_image_data(images_names):
                             "direction": image_for_edit["direction"],
                         }
                     new_image_data = {
-                        "name": name_placeholder,
+                        "name": edit_name,
                         "date": new_datetime,
                         "gps": new_gps,
                     }
-                    # response = requests.patch(
-                    #     f"http://localhost:8000/patchImage/{selected_image_data['name']}",
-                    #     json=new_image_data,
-                    # )
-                    # if response.status_code == 202:
-                    #     st.success("Successfully edited image data.")
-                    # else:
-                    #     st.error("Failed to edit image data.")
+                    id = image_for_edit["id"]
+                    print(id)
+                    res = update_image_async(id, new_image_data)
+                    if res:
+                        st.success("Image data updated successfully.")
+                    else:
+                        st.error("Error updating image data.")
 
 
 images_names = get_images_names()

@@ -157,18 +157,18 @@ def delete_image_by_name(
 
 
 @router.put(
-    "/{id}",
+    "/{image_id}/",
     response_description="The updated image",
     status_code=status.HTTP_202_ACCEPTED,
 )
 def update_image(
-    id,
-    request: schemas.Image,
+    image_id: int,
+    request: dict,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
     user_id = current_user.id
-    return image.update(id, request, db, user_id)
+    return image.update(image_id, request, db, user_id)
 
 
 # @router.put("/update_image_gps/{image_id}")
