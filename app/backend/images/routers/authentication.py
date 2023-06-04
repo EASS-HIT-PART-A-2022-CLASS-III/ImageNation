@@ -3,7 +3,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 import database, models, jwt_token
 from sqlalchemy.orm import Session
 from hashing import Hash
-from datetime import timedelta
 
 
 router = APIRouter(

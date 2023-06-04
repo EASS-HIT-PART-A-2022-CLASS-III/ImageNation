@@ -5,11 +5,16 @@ from streamlit_folium import folium_static
 from folium.plugins import MarkerCluster
 import io
 from PIL import Image
-from utils import decode_base64, load_data_for_plot, calculate_center, load_data_for_df, load_data_for_map
+from utils import (
+    decode_base64,
+    load_data_for_plot,
+    calculate_center,
+    load_data_for_df,
+    load_data_for_map,
+)
 
 
-
-st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️")
+st.set_page_config(page_title="IMAGE WATCH", page_icon="🖼️", layout="wide")
 st.markdown(
     """
     <style>
@@ -36,21 +41,18 @@ def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
         st.write("This is the details table content.")
         df = df.rename(columns={"smallRoundContent": "Preview Image"})
-        column_options = [
-            col for col in df.columns.tolist() if col != "Preview Image"
-        ]  
+        column_options = [col for col in df.columns.tolist() if col != "Preview Image"]
         default_columns = column_options
         imageDetails_multiSelect = st.multiselect(
             "Select which details to show",
             options=column_options,
             default=default_columns,
         )
+
         st.write("Press attribute name to sort by it.")
-        selected_columns = [
-            "Preview Image"
-        ] + imageDetails_multiSelect  
-        temp_df = df[selected_columns]
-        temp_df["Preview Image"] = temp_df["Preview Image"].apply(
+        selected_columns = ["Preview Image"] + imageDetails_multiSelect
+        temp_df = df[selected_columns].copy()
+        temp_df.loc[:, "Preview Image"] = temp_df["Preview Image"].apply(
             lambda x: f"data:image/jpeg;base64,{x}"
         )
         st.dataframe(
@@ -145,7 +147,7 @@ def plot_images_on_map(df):
             location=center,
             zoom_start=3,
             max_zoom=18,
-            min_zoom=1,
+            min_zoom=2,
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             attr="Esri",
         )
@@ -167,6 +169,9 @@ def plot_images_on_map(df):
 try:
     if imageView_radioButton == "Show details Table":
         df = load_data_for_df()
+        if df is None:
+            st.error("Please upload images first.")
+            st.stop()
         view_images_content(df)
     elif imageView_radioButton == "Show small images":
         images_data = load_data_for_plot()

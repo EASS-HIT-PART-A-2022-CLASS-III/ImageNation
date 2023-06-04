@@ -1,8 +1,9 @@
 import streamlit as st
-from utils import get_duplicates_async, delete_image
+from utils import get_duplicates_async, delete_image_async, get_all_pages
+from st_pages import Page, show_pages
 
 
-st.set_page_config(page_title="Find Duplicates", page_icon="👯‍♀️")
+st.set_page_config(page_title="Find Duplicates", page_icon="👯‍♀️", layout="wide")
 
 st.markdown(
     """
@@ -18,7 +19,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown("---")
-
+all_pages = get_all_pages()
 
 get_duplicates_button = st.button("Press to find Duplicates")
 try:
@@ -29,6 +30,7 @@ try:
         show_duplicates_list = False
 
     if "duplicates_images" in st.session_state:
+        show_pages(all_pages)
         if not st.session_state.duplicates_images:
             st.warning("No duplicate images found.")
         else:
@@ -47,7 +49,7 @@ try:
                 delete_button = st.button("Delete selected images")
                 if delete_button:
                     for image in selected_images:
-                        delete_result = delete_image(image)
+                        delete_result = delete_image_async(image)
                         if delete_result is not None:
                             st.success(delete_result["message"])
                     for image in selected_images:

@@ -1,7 +1,6 @@
 from datetime import datetime
 import json
-from pydantic import BaseModel, Field, DirectoryPath
-from typing import List
+from pydantic import BaseModel, Field
 
 
 class Location(BaseModel):
@@ -82,50 +81,48 @@ class TokenData(BaseModel):
 
 
 class ImageData(BaseModel):
-    smallRoundContent: str
+    smallRoundContent: str | None = Field(None)
     name: str
-    size: float
-    date: datetime
-    altitude: float
-    direction: float
-    latitude: float
-    longitude: float
-    country: str
-    phash: str
+    country: str | None = Field(None)
+    size: float | None = Field(None)
+    date: datetime | None = Field(None)
+    altitude: float | None = Field(None)
+    direction: float | None = Field(None)
+    latitude: float | None = Field(None)
+    longitude: float | None = Field(None)
+    phash: str | None = Field(None)
 
-    class config:
-        orm_mode = True
+
+class ImageEdit(BaseModel):
+    name: str
+    content: str
+    date: datetime | None = Field(None)
+    altitude: float | None = Field(None)
+    direction: float | None = Field(None)
+    latitude: float | None = Field(None)
+    longitude: float | None = Field(None)
 
 
 class ImagePlot(BaseModel):
     name: str
-    country: str
+    country: str | None = Field(None)
     content: str
-
-    class Config:
-        orm_mode = True
 
 
 class ImageMap(BaseModel):
     name: str
-    country: str
-    direction: float
-    latitude: float
-    longitude: float
+    country: str | None = Field(None)
+    direction: float | None = Field(None)
+    latitude: float | None = Field(None)
+    longitude: float | None = Field(None)
     smallRoundContent: str
     content: str
-    date: datetime
-
-    class Config:
-        orm_mode = True
+    date: datetime | None = Field(None)
 
 
 class ImageDup(BaseModel):
     name: str
     phash: str
-
-    class Config:
-        orm_mode = True
 
 
 class DateTimeEncoder(json.JSONEncoder):
