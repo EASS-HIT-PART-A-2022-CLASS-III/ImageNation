@@ -5,15 +5,30 @@ import base64
 import httpx
 from streamlit_extras.switch_page_button import switch_page
 import asyncio
+from st_pages import Page
 
 API_URL = "http://localhost:8000"
+
+
+def get_all_pages():
+    all_pages = [
+        Page("Home.py", "Home"),
+        Page("pages/1_Upload_Images.py", "Uplaod Images"),
+        Page("pages/2_Edit_Photos.py", "Edits Images"),
+        Page("pages/3_View_Uploaded_Images.py", "View Uploaded Images"),
+        Page("pages/4_Find_Duplicates.py", "Find Duplicates"),
+    ]
+    return all_pages
 
 
 def load_data_for_df():
     with st.spinner("Loading Data..."):
         images_data = asyncio.run(get_images_data("images/data/"))
-        df = create_db_df(images_data)
-        return df
+        if images_data:
+            df = create_db_df(images_data)
+            return df
+        else:
+            return None
 
 
 def load_data_for_plot():
@@ -41,7 +56,7 @@ def get_images_names():
         return image_names
 
 
-async def get_images_data(endpoint):
+async def get_images_data(endpoint: str):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{API_URL}/{endpoint}", headers=headers)
@@ -67,14 +82,20 @@ def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
 
 
+def delete_image_async(image_name):
+    with st.spinner("Deleting Images..."):
+        res = asyncio.run(delete_image(image_name))
+        return res
+
+
 async def delete_image(image_name):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
         response = await client.delete(
-            f"{API_URL}/images/{image_name}", headers=headers
+            f"{API_URL}/images/name/{image_name}/", headers=headers
         )
-        if response.status_code == 200:
-            return response.json()
+        if response.status_code == 204:
+            return {"message": f"image with the name: {image_name} deleted"}
         else:
             st.error(f"Failed to delete image: {image_name}")
             return None

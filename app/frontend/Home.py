@@ -1,30 +1,15 @@
 import streamlit as st
 import asyncio
-from utils import logout, login, signup, add_bg_from_local
+from utils import logout, login, signup, add_bg_from_local, get_all_pages
 from st_pages import Page, show_pages
 
 
-st.set_page_config(
-    page_title="Welcome to IMAGE-NATION",
-    page_icon="🌍",
-    layout="wide",
-    menu_items={
-        "Get Help": "https://www.extremelycoolapp.com/help",
-        "Report a bug": "https://www.extremelycoolapp.com/bug",
-        "About": "# This is a header. This is an *extremely* cool app!",
-    },
-)
+st.set_page_config(page_title="Welcome to IMAGE-NATION", page_icon="🌍", layout="wide")
 add_bg_from_local("bg_new.jpg")
 
 
 home_page = Page("Home.py", "Home")
-all_pages = [
-    Page("Home.py", "Home"),
-    Page("pages/1_Upload_Images.py", "Uplaod Images"),
-    Page("pages/2_Edit_Photos.py", "Edits Images"),
-    Page("pages/3_View_Uploaded_Images.py", "View Uploaded Images"),
-    Page("pages/4_Find_Duplicates.py", "Find Duplicates"),
-]
+all_pages = get_all_pages()
 
 
 # st.markdown("---")

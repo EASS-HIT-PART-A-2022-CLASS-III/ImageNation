@@ -169,6 +169,9 @@ def plot_images_on_map(df):
 try:
     if imageView_radioButton == "Show details Table":
         df = load_data_for_df()
+        if df is None:
+            st.error("Please upload images first.")
+            st.stop()
         view_images_content(df)
     elif imageView_radioButton == "Show small images":
         images_data = load_data_for_plot()

@@ -169,20 +169,52 @@ def create(request: schemas.ImageModel, db: Session, user_id: int):
     return image
 
 
-def delete(id: int, db: Session, user_id: int):
+def delete_by_id(id: int, db: Session, user_id: int):
     image = (
         db.query(models.Image)
         .filter(models.Image.user_id == user_id)
         .filter(models.Image.id == id)
+        .first()
     )
-    if not image.first():
+    if not image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image with the id {id} is not available",
         )
-    image.delete(synchronize_session=False)
-    db.commit()
+    db.delete(image)
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while deleting the image.",
+        )
     return {"message": f"image with the id: {id} deleted"}
+
+
+def delete_by_name(name: str, db: Session, user_id: int):
+    image = (
+        db.query(models.Image)
+        .filter(models.Image.user_id == user_id)
+        .filter(models.Image.name == name)
+        .first()
+    )
+    if not image:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image with the name {name} is not available",
+        )
+    db.delete(image)
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while deleting the image.",
+        )
+    return {"message": f"image with the name: {name} deleted"}
 
 
 def update(id: int, request: schemas.Image, db: Session, user_id: int):

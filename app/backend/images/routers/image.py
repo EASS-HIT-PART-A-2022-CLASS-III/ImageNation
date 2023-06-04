@@ -115,7 +115,7 @@ def show_image(
 
 
 @router.delete(
-    "/{id}",
+    "/id/{id}/",
     response_description="The deleted image",
     status_code=status.HTTP_204_NO_CONTENT,
 )
@@ -125,7 +125,21 @@ def delete_image(
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
     user_id = current_user.id
-    return image.delete(id, db, user_id)
+    return image.delete_by_id(id, db, user_id)
+
+
+@router.delete(
+    "/name/{image_name}/",
+    response_description="The deleted image",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_image_by_name(
+    image_name: str,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user.id
+    return image.delete_by_name(image_name, db, user_id)
 
 
 @router.put(
