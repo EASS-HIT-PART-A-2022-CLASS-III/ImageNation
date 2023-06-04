@@ -29,6 +29,18 @@ def load_data_for_map():
         return df
 
 
+def get_duplicates_async():
+    with st.spinner("Loading Data..."):
+        dup_images = asyncio.run(get_images_data("images/find_duplicates/"))
+        return dup_images
+
+
+def get_images_names():
+    with st.spinner("Loading Data..."):
+        image_names = asyncio.run(get_images_data("images/names/"))
+        return image_names
+
+
 async def get_images_data(endpoint):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
@@ -53,25 +65,6 @@ def decode_base64(encoded_str: str) -> bytes:
 
 def encode_base64(byte_array: bytes) -> str:
     return base64.b64encode(byte_array).decode("ascii")
-
-
-def get_duplicates_async():
-    with st.spinner("Loading Data..."):
-        res = asyncio.run(get_duplicates())
-        return res
-
-
-async def get_duplicates():
-    headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{API_URL}/images/find_duplicates/", headers=headers
-        )
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error("Failed to retrieve images.")
-            return []
 
 
 async def delete_image(image_name):
@@ -126,12 +119,14 @@ async def login(email: str, password: str):
             st.session_state["user"][
                 "action_status"
             ] = "Login failed. Please try again."
+            st.error("Login failed. Please try again.")
 
     else:
         st.session_state["user"]["logged_in"] = False
         st.session_state["user"][
             "action_status"
         ] = "Login failed. Please check your credentials."
+        st.error("Login failed. Please try again.")
 
 
 async def signup(name: str, email: str, password: str):

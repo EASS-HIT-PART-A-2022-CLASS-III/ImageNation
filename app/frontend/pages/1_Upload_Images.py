@@ -2,7 +2,7 @@ import streamlit as st
 from utils import upload_images_async
 
 
-st.set_page_config(page_title="Image Uploadung", page_icon="📮", layout="wide", layout="wide")
+st.set_page_config(page_title="Image Uploadung", page_icon="📮", layout="wide")
 st.markdown(
     """
     <style>
@@ -27,6 +27,7 @@ uploaded_files = col1.file_uploader(
 
 upload_button = col2.button("Upload Images")
 
+
 if upload_button:
     try:
         if not uploaded_files:
@@ -34,13 +35,25 @@ if upload_button:
         else:
             response = upload_images_async(uploaded_files)
             if response.status_code == 201:
-                col2.image("boratGreat.gif", use_column_width=True)
-                col1.success(
-                    f"Successfully uploaded {len(uploaded_files)} images, see below the uploaded images."
-                )
+                response_json = response.json()
+                success_count = response_json.get("success", 0)
+                error_messages = response_json.get("errors", [])
+                successful_uploads = response_json.get("uploaded_images", [])
+                if success_count != 0:
+                    col2.image("boratGreat.gif", use_column_width=True)
+                    col1.success(
+                        f"{success_count} Images upload successfully, See below the uploaded images."
+                    )
+                if error_messages:
+                    with col1.expander(
+                        ":red[Expend to see unsuccessfull uploads images]"
+                    ):
+                        for error in error_messages:
+                            st.warning(error)
                 cols = st.columns(3)
                 for i, file in enumerate(uploaded_files):
-                    cols[i % 3].image(file, width=150, caption=file.name)
+                    if file.name in successful_uploads:
+                        cols[i % 3].image(file, width=150, caption=file.name)
             else:
                 st.error("Failed to upload images.")
     except Exception as e:

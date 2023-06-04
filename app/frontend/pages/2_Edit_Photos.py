@@ -7,7 +7,7 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import io
-from utils import create_db_df, decode_base64
+from utils import get_images_names, create_db_df, decode_base64
 from streamlit_extras.no_default_selectbox import selectbox
 
 

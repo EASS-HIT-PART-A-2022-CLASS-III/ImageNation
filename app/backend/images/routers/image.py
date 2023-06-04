@@ -21,7 +21,8 @@ def show_all(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    return image.show_all(db)
+    user_id = current_user.id
+    return image.show_all(db, user_id)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -31,16 +32,15 @@ async def create_image(
     current_user_model: models.User = Depends(oauth2.get_current_user),
 ):
     current_user = schemas.UserBase.from_orm(current_user_model)
-    success_count, error_messages = await image.process_and_create_images(
-        upload_images, db, current_user.id
-    )
-    if success_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=error_messages
-        )
+    (
+        success_count,
+        error_messages,
+        uploaded_images,
+    ) = await image.process_and_create_images(upload_images, db, current_user.id)
     return {
-        "message": f"{success_count} images created and added to the DB successfully",
+        "success": success_count,
         "errors": error_messages,
+        "uploaded_images": uploaded_images,
     }
 
 
@@ -64,6 +64,15 @@ async def get_user_images_plot(
 ):
     user_id = current_user_model.id
     return image.show_all_image_for_plot(db, user_id)
+
+
+@router.get("/names/", response_model=List[str], status_code=status.HTTP_200_OK)
+async def get_image_names(
+    db: Session = Depends(database.get_db),
+    current_user_model: models.User = Depends(oauth2.get_current_user),
+):
+    user_id = current_user_model.id
+    return image.show_all_image_names(db, user_id)
 
 
 @router.get(
@@ -101,7 +110,8 @@ def show_image(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    return image.show(id, db)
+    user_id = current_user.id
+    return image.show(id, db, user_id)
 
 
 @router.delete(
@@ -114,7 +124,8 @@ def delete_image(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    return image.delete(id, db)
+    user_id = current_user.id
+    return image.delete(id, db, user_id)
 
 
 @router.put(
@@ -128,7 +139,8 @@ def update_image(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    return image.update(id, request, db)
+    user_id = current_user.id
+    return image.update(id, request, db, user_id)
 
 
 # @router.put("/update_image_gps/{image_id}")

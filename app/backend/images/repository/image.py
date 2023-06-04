@@ -8,8 +8,8 @@ import httpx
 API_URL = "http://localhost:8801"
 
 
-def show_all(db: Session):
-    images = db.query(models.Image).all()
+def show_all(db: Session, user_id: int) -> List[schemas.Image]:
+    images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
     if not images:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No images available"
@@ -17,8 +17,13 @@ def show_all(db: Session):
     return images
 
 
-def show(id: int, db: Session):
-    image = db.query(models.Image).filter(models.Image.id == id).first()
+def show(id: int, db: Session, user_id: int) -> schemas.Image:
+    image = (
+        db.query(models.Image)
+        .filter(models.Image.user_id == user_id)
+        .filter(models.Image.id == id)
+        .first()
+    )
     if not image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -70,6 +75,14 @@ def show_all_image_for_map(db: Session, user_id: int) -> List[schemas.ImageMap]:
         )
         image_map_list.append(image_map)
     return image_map_list
+
+
+def show_all_image_names(db: Session, user_id: int) -> List[str]:
+    image_names = (
+        db.query(models.Image.name).filter(models.Image.user_id == user_id).all()
+    )
+    image_names = [name[0] for name in image_names]
+    return image_names
 
 
 def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
@@ -156,8 +169,12 @@ def create(request: schemas.ImageModel, db: Session, user_id: int):
     return image
 
 
-def delete(id: int, db: Session):
-    image = db.query(models.Image).filter(models.Image.id == id)
+def delete(id: int, db: Session, user_id: int):
+    image = (
+        db.query(models.Image)
+        .filter(models.Image.user_id == user_id)
+        .filter(models.Image.id == id)
+    )
     if not image.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -168,8 +185,12 @@ def delete(id: int, db: Session):
     return {"message": f"image with the id: {id} deleted"}
 
 
-def update(id: int, request: schemas.Image, db: Session):
-    image = db.query(models.Image).filter(models.Image.id == id)
+def update(id: int, request: schemas.Image, db: Session, user_id: int):
+    image = (
+        db.query(models.Image)
+        .filter(models.Image.user_id == user_id)
+        .filter(models.Image.id == id)
+    )
     if not image.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -211,6 +232,7 @@ async def process_and_create_images(
 ):
     success_count = 0
     error_messages = []
+    uploaded_images = []
     for upload_image in upload_images:
         image_data = await upload_image.read()
         try:
@@ -231,10 +253,22 @@ async def process_and_create_images(
                 error_messages.append(f"{error_message}")
                 continue
             processed_image = schemas.ImageModel.parse_obj(response.json())
+            existing_image = (
+                db.query(models.Image)
+                .filter(models.Image.user_id == current_user_id)
+                .filter(models.Image.name == processed_image.name)
+                .first()
+            )
+            if existing_image:
+                error_messages.append(
+                    f"Exception for image {upload_image.filename}: Image with the same name already exists."
+                )
+                continue
             create(processed_image, db, current_user_id)
             success_count += 1
+            uploaded_images.append(processed_image.name)
         except Exception as e:
             error_messages.append(
                 f"Exception for image {upload_image.filename}: {str(e)}"
             )
-    return success_count, error_messages
+    return success_count, error_messages, uploaded_images
