@@ -52,6 +52,34 @@ def show_all_image_for_plot(db: Session, user_id: int) -> List[schemas.ImagePlot
     return image_plot_list
 
 
+def show_image_for_edit(
+    image_name: str, db: Session, user_id: int
+) -> schemas.ImageEdit:
+    image = (
+        db.query(models.Image)
+        .options(joinedload(models.Image.gps))
+        .filter(models.Image.user_id == user_id)
+        .filter(models.Image.name == image_name)
+        .first()
+    )
+    if not image:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Image with the id {id} is not available",
+        )
+
+    image_edit = schemas.ImageEdit(
+        name=image.name,
+        content=image.content,
+        date=image.date,
+        altitude=image.gps.altitude if image.gps else 0,
+        direction=image.gps.direction if image.gps else 0,
+        latitude=image.gps.latitude if image.gps else 0,
+        longitude=image.gps.longitude if image.gps else 0,
+    )
+    return image_edit
+
+
 def show_all_image_for_map(db: Session, user_id: int) -> List[schemas.ImageMap]:
     images = (
         db.query(models.Image)

@@ -147,7 +147,7 @@ def plot_images_on_map(df):
             location=center,
             zoom_start=3,
             max_zoom=18,
-            min_zoom=1,
+            min_zoom=2,
             tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             attr="Esri",
         )

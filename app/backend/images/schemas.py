@@ -93,6 +93,16 @@ class ImageData(BaseModel):
     phash: str | None = Field(None)
 
 
+class ImageEdit(BaseModel):
+    name: str
+    content: str
+    date: datetime | None = Field(None)
+    altitude: float | None = Field(None)
+    direction: float | None = Field(None)
+    latitude: float | None = Field(None)
+    longitude: float | None = Field(None)
+
+
 class ImagePlot(BaseModel):
     name: str
     country: str | None = Field(None)

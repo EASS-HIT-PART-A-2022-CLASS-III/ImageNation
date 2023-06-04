@@ -56,6 +56,12 @@ def get_images_names():
         return image_names
 
 
+def get_image_for_edit(image_name):
+    with st.spinner("Loading Data..."):
+        image = asyncio.run(get_images_data(f"images/edit/{image_name}/"))
+        return image
+
+
 async def get_images_data(endpoint: str):
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
     async with httpx.AsyncClient() as client:
