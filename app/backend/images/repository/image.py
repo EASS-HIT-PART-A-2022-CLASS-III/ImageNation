@@ -247,6 +247,11 @@ def delete_by_name(name: str, db: Session, user_id: int):
     return {"message": f"image with the name: {name} deleted"}
 
 
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from datetime import datetime
+
+
 def update(image_id: str, request: dict, db: Session, user_id: int):
     image = (
         db.query(models.Image)
@@ -260,9 +265,14 @@ def update(image_id: str, request: dict, db: Session, user_id: int):
             detail=f"Image with the id {image_id} not found",
         )
     for attr, value in request.items():
+        if value is None:
+            continue  # Skip None values
         if attr in ["gps", "location"] and isinstance(value, dict):
-            for field, field_value in value.items():
-                setattr(getattr(image, attr), field, field_value)
+            attr_obj = getattr(image, attr, None)
+            if attr_obj is not None:
+                for field, field_value in value.items():
+                    setattr(attr_obj, field, field_value)
+                setattr(image, attr, attr_obj)
         elif attr == "date":
             date_object = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
             setattr(image, attr, date_object)

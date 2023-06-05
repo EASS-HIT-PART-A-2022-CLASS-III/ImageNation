@@ -46,6 +46,9 @@ if upload_button:
                     col2.success(
                         f"{success_count} Images upload successfully, See below the uploaded images."
                     )
+                else:
+                    image_placeholder.image("boratNo.gif", use_column_width=True)
+                    st.error("Failed to upload images.")
                 if error_messages:
                     with col2.expander(
                         ":red[Expend to see unsuccessfull uploads images]"
@@ -58,5 +61,6 @@ if upload_button:
                         cols[i % 3].image(file, width=150, caption=file.name)
             else:
                 st.error("Failed to upload images.")
+                image_placeholder.image("boratNo.gif", use_column_width=True)
     except Exception as e:
         st.error(f"Failed to upload images. Error: {e}")
