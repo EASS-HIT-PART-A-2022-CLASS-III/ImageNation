@@ -4,6 +4,7 @@ from typing import List
 import models, schemas
 import json
 import httpx
+from datetime import datetime
 
 API_URL = "http://localhost:8801"
 
@@ -69,6 +70,7 @@ def show_image_for_edit(
         )
 
     image_edit = schemas.ImageEdit(
+        id=image.id,
         name=image.name,
         content=image.content,
         date=image.date,
@@ -245,20 +247,39 @@ def delete_by_name(name: str, db: Session, user_id: int):
     return {"message": f"image with the name: {name} deleted"}
 
 
-def update(id: int, request: schemas.Image, db: Session, user_id: int):
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from datetime import datetime
+
+
+def update(image_id: str, request: dict, db: Session, user_id: int):
     image = (
         db.query(models.Image)
         .filter(models.Image.user_id == user_id)
-        .filter(models.Image.id == id)
+        .filter(models.Image.id == image_id)
+        .first()
     )
-    if not image.first():
+    if not image:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Image with the id {id} not found",
+            detail=f"Image with the id {image_id} not found",
         )
-    image.update(request.dict())
+    for attr, value in request.items():
+        if value is None:
+            continue  # Skip None values
+        if attr in ["gps", "location"] and isinstance(value, dict):
+            attr_obj = getattr(image, attr, None)
+            if attr_obj is not None:
+                for field, field_value in value.items():
+                    setattr(attr_obj, field, field_value)
+                setattr(image, attr, attr_obj)
+        elif attr == "date":
+            date_object = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+            setattr(image, attr, date_object)
+        else:
+            setattr(image, attr, value)
     db.commit()
-    return {"message": f"image with the id: {id} updated"}
+    return {"message": f"image with the id: {image_id} updated"}
 
 
 async def show_all_duplicates(db: Session, user_id: int):

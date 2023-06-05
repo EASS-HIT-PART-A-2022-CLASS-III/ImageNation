@@ -116,29 +116,3 @@ async def get_location_details_with_error_handling(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             f"An error occurred processing {latitude}, {longitude}: {str(e)}",
         )
-
-
-# @app.post("/phash")
-# async def calculate_phash(image: UploadFile):
-#     image_data = await image.read()
-#     try:
-#         phash_value = await imageProcessing.calculate_phash_value(image_data)
-#         return {"phash_value": phash_value}
-#     except imageProcessing.PhashCalculationError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e)
-#         )
-
-
-# @app.post("/process_small_image")
-# async def process_image(file: UploadFile):
-#     image_data = await file.read()
-#     try:
-#         processed_image_data = await imageProcessing.process_small_image_data(
-#             image_data
-#         )
-#         # Do something with the processed image data, e.g. return it or save it somewhere
-#     except imageProcessing.SmallImageProcessingError as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e)
-#         )

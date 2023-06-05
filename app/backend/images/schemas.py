@@ -94,6 +94,7 @@ class ImageData(BaseModel):
 
 
 class ImageEdit(BaseModel):
+    id: int
     name: str
     content: str
     date: datetime | None = Field(None)

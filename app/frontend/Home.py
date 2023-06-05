@@ -11,7 +11,6 @@ add_bg_from_local("bg_new.jpg")
 home_page = Page("Home.py", "Home")
 all_pages = get_all_pages()
 
-
 # st.markdown("---")
 # st.write("Welcome to my app!")
 
@@ -29,7 +28,7 @@ if "user" not in st.session_state:
 
 if st.session_state["user"]["logged_in"]:
     st.sidebar.title(f"Logged in as: {st.session_state['user']['name']}")
-    st.write(f"Hello, {st.session_state['user']['name']}!")
+    # st.write(f"Hello, {st.session_state['user']['name']}!")
     show_pages(all_pages)
     if st.sidebar.button("Log Out"):
         show_pages([home_page])

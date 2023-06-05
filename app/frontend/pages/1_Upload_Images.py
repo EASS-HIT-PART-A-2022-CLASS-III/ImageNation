@@ -12,7 +12,8 @@ st.markdown(
     }
     </style>
 
-    <h1 style='text-align: center; color: blue;'>Image Uploader</h1>
+    <h1 style='text-align: center;font-size:50px; color: white;'>Image Uploader</h1>
+
     """,
     unsafe_allow_html=True,
 )
@@ -24,8 +25,9 @@ col1, col2 = st.columns([3, 1])
 uploaded_files = col1.file_uploader(
     "Choose images...", type=["jpg", "jpeg", "png"], accept_multiple_files=True
 )
-
-upload_button = col2.button("Upload Images")
+image_placeholder = col2.empty()
+col1, col2, _ = st.columns([1, 2, 1])
+upload_button = col1.button("Upload Images")
 
 
 if upload_button:
@@ -40,12 +42,15 @@ if upload_button:
                 error_messages = response_json.get("errors", [])
                 successful_uploads = response_json.get("uploaded_images", [])
                 if success_count != 0:
-                    col2.image("boratGreat.gif", use_column_width=True)
-                    col1.success(
+                    image_placeholder.image("boratGreat.gif", use_column_width=True)
+                    col2.success(
                         f"{success_count} Images upload successfully, See below the uploaded images."
                     )
+                else:
+                    image_placeholder.image("boratNo.gif", use_column_width=True)
+                    st.error("Failed to upload images.")
                 if error_messages:
-                    with col1.expander(
+                    with col2.expander(
                         ":red[Expend to see unsuccessfull uploads images]"
                     ):
                         for error in error_messages:
@@ -56,5 +61,6 @@ if upload_button:
                         cols[i % 3].image(file, width=150, caption=file.name)
             else:
                 st.error("Failed to upload images.")
+                image_placeholder.image("boratNo.gif", use_column_width=True)
     except Exception as e:
         st.error(f"Failed to upload images. Error: {e}")

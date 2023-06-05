@@ -1,6 +1,5 @@
 import streamlit as st
-from utils import get_duplicates_async, delete_image_async, get_all_pages
-from st_pages import Page, show_pages
+from utils import get_duplicates_async, delete_image_async
 
 
 st.set_page_config(page_title="Find Duplicates", page_icon="👯‍♀️", layout="wide")
@@ -14,12 +13,12 @@ st.markdown(
     }
     </style>
 
-    <h1 style='text-align: center; color: blue;'>Find Duplicates</h1>
+    <h1 style='text-align: center;font-size:50px; color: white;'>Find Duplicates</h1>
     """,
     unsafe_allow_html=True,
 )
-st.markdown("---")
-all_pages = get_all_pages()
+st.write("---")
+
 
 get_duplicates_button = st.button("Press to find Duplicates")
 try:
@@ -30,7 +29,6 @@ try:
         show_duplicates_list = False
 
     if "duplicates_images" in st.session_state:
-        show_pages(all_pages)
         if not st.session_state.duplicates_images:
             st.warning("No duplicate images found.")
         else:

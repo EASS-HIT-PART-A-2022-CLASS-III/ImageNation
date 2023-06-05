@@ -24,7 +24,7 @@ st.markdown(
     }
     </style>
 
-    <h1 style='text-align: center; color: blue;'>View Uploaded Image 📽️</h1>
+    <h1 style='text-align: center;font-size:50px; color: white;'>View Uploaded Image</h1>
     """,
     unsafe_allow_html=True,
 )
@@ -39,6 +39,7 @@ imageView_radioButton = st.sidebar.selectbox(
 
 def view_images_content(df):
     with st.spinner("Loading Data Frame please wait..."):
+        st.write("---")
         st.write("This is the details table content.")
         df = df.rename(columns={"smallRoundContent": "Preview Image"})
         column_options = [col for col in df.columns.tolist() if col != "Preview Image"]

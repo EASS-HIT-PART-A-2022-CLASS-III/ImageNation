@@ -3,7 +3,8 @@ from fastapi.encoders import jsonable_encoder
 import json
 from fastapi import status
 import pytest
-from app.backend.models import DateTimeEncoder
+
+# from app.backend.models import DateTimeEncoder
 from main import app
 import os
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -13,14 +14,29 @@ from datetime import datetime
 client = TestClient(app=app)
 
 
-def test_read_main():
-    response = client.get("/")
-    assert response.status_code == 200
-    assert response.json() == {"message": "IMAGE-NATION is UP"}
+def test_home(test_app: TestClient):
+    response = test_app.get("/")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {"message": "Image_Processor is UP"}
+
+
+def test_process_image_file(test_app: TestClient):
+    image_file_path = os.path.join("path_to_your_test_folder", "your_test_image.jpg")
+
+    with open(image_file_path, "rb") as image_file:
+        response = test_app.post(
+            "/process_image/",
+            files={"image": ("your_test_image.jpg", image_file, "image/jpeg")},
+        )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["filename"] == "your_test_image.jpg"
 
 
 def test_upload_and_calculate_phash():
-    test_images_dir = "/home/royga/eass/finalproject/myImages/test_images"
+    test_images_dir = (
+        "/home/royga/eass/finalproject/myImages/app/image_processor/test/test_images"
+    )
     test_images = ["IMG_11.jpeg", "IMG_12(copy).jpeg"]
     files = [
         ("images", (open(os.path.join(test_images_dir, image_name), "rb")))
@@ -68,7 +84,7 @@ def test_find_duplicate():
     assert "image7.jpg" in response.json()["duplicates"]
 
 
-def test_datetime_encoder():
-    dt = datetime(2023, 5, 7, 14, 30)
-    encoded_dt = json.dumps(dt, cls=DateTimeEncoder)
-    assert encoded_dt == '"2023-05-07 14:30:00"'
+# def test_datetime_encoder():
+#     dt = datetime(2023, 5, 7, 14, 30)
+#     encoded_dt = json.dumps(dt, cls=DateTimeEncoder)
+#     assert encoded_dt == '"2023-05-07 14:30:00"'
