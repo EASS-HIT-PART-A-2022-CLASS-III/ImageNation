@@ -14,7 +14,7 @@ def get_all_pages():
     all_pages = [
         Page("Home.py", "Home"),
         Page("pages/1_Upload_Images.py", "Uplaod Images"),
-        Page("pages/2_Edit_Photos.py", "Edits Images"),
+        Page("pages/2_Edit_Images.py", "Edit Images"),
         Page("pages/3_View_Uploaded_Images.py", "View Uploaded Images"),
         Page("pages/4_Find_Duplicates.py", "Find Duplicates"),
     ]
@@ -214,7 +214,7 @@ def add_bg_from_local(image_file: str):
     .stApp {{
         background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
         background-size: 100% 100%;  
-        background-position: full;
+        background-position: fixed;
     }}
 
     .css-cio0dv.egzxvld1
@@ -223,12 +223,16 @@ def add_bg_from_local(image_file: str):
         }}
     </style>
 
-    <h1 style='text-align: center;font-size:70px; pointer-events: none; color: #2b2a2a;'>
-    Welcome To IMAGE-NATION
-    </h1>
-    <h2 style='text-align: center; pointer-events: none; color: #2b2a2a;'>
-    Are you ready to re-explore the world?
-    </h2>
+
+<h1 style='text-align: center;font-size:85px; pointer-events: none; font-weight:bold; color: #2b2a2a; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); background-color: #yourColor;'>
+   IMAGE-NATION
+</h1>
+<p style='text-align: center; font-size:45px; font-weight:bold; pointer-events: none; color: #fba362; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); background-color: #yourColor;'>
+    Are You Ready To Re-Explore THE WORLD
+</p>
+
+
+
 
     
     """,

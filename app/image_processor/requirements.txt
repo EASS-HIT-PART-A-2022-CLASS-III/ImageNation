@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+imagededup
+python-multipart
+Pillow
+starlette
+httpx
+geopy
