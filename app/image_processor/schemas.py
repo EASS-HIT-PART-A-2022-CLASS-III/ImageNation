@@ -1,21 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-# class ImageBase(BaseModel):
-#     name: str
-#     phash: str
-#     size: float
-
-# class ImageCreate(ImageBase):
-#     content: bytes
-
-# class Image(ImageBase):
-#     id: Optional[int] = None
-#     content: Optional[bytes] = Field(default=None)
-
-#     class Config:
-#         orm_mode = True
-
 
 class Location(BaseModel):
     country: str | None = Field(None, example="Israel")

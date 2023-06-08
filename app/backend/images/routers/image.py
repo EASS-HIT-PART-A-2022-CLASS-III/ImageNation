@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File
 from typing import List
 from sqlalchemy.orm import Session
-import database, schemas, oauth2, models
+import database, schemas, models
+from app_authentication import oauth2
 from repository import image
 
 
@@ -170,46 +171,3 @@ def update_image(
     user_id = current_user.id
     return image.update(image_id, request, db, user_id)
 
-
-# @router.put("/update_image_gps/{image_id}")
-# async def update_image_gps_endpoint(image_id: int, latitude: float, longitude: float):
-#     # Retrieve the image details from the database using the image_id
-#     image = session.query(ImageModel).get(image_id)
-#     if image is None:
-#         raise HTTPException(status_code=404, detail="Image not found")
-
-#     # Update the GPS coordinates in the image details
-#     image.gps = GPS(latitude=latitude, longitude=longitude)
-
-#     # Update the location details based on the new coordinates
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(f"http://location_service:8000/get_location_details?latitude={latitude}&longitude={longitude}")
-#         location_data = response.json()
-
-#     image.location = Location(country=location_data['country'], data=location_data)
-
-#     # Save the updated image details back to the database
-#     session.commit()
-
-#     return {"message": f"Image {image_id} GPS coordinates updated successfully."}
-
-
-# @app.patch(
-#     "/patchImage/{image_name}",
-#     response_description="The updated image",
-#     status_code=status.HTTP_202_ACCEPTED,
-# )
-# async def patch_image(image_name: str, image: ImageModel):
-#     if image_name not in database:
-#         raise HTTPException(status_code=404, detail=f"Image {image_name} not found")
-#     stored_image_data = database.get(image_name)
-#     if stored_image_data is not None:
-#         update_data = image.dict(exclude_unset=True)
-#         for field, value in update_data.items():
-#             if value is not None:
-#                 setattr(stored_image_data, field, value)
-#         database[image_name] = stored_image_data
-#         return {"image": stored_image_data.dict()}
-#     else:
-#         database[image_name] = image.dict()
-#         return {"status": "success", "message": f"{image_name} updated"}
