@@ -140,7 +140,8 @@ async def upload_images(uploaded_files: list):
             ("upload_images", (uploaded_file.name, file_bytes, uploaded_file.type))
         )
     headers = {"Authorization": f"Bearer {st.session_state['user']['access_token']}"}
-    async with httpx.AsyncClient() as client:
+    timeout = 30.0
+    async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.post(
             f"{API_URL}/images/", files=files_dict, headers=headers
         )
