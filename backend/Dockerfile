@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /myImages/backend/
+WORKDIR /ImageNation/backend/
 
 COPY requirements.txt .
 
