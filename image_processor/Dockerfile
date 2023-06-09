@@ -1,6 +1,6 @@
 FROM python:3.10
 
-WORKDIR /myImages/image_processor
+WORKDIR /ImageNation/image_processor
 
 COPY requirements.txt .
 

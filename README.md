@@ -40,9 +40,8 @@ Features
     🔍 Perceptual hash calculation for uploaded images
     🌍 GPS coordinates and date metadata extraction from EXIF data
     🖼 Display and management of image records
-    🗑 Easy deletion of uploaded images
     🔄 Metadata updates for uploaded images
-    🔍 Finding and displaying duplicate images based on perceptual hash values
+    🔍 Finding and delete duplicate images based on perceptual hash values
 
 <!-- Project Architecture
 <p align="center">
@@ -54,10 +53,6 @@ Features
 * [Docker](https://www.docker.com/) - Containerization platform
 * [Streamlit](https://streamlit.io/) - The Clients side 
 
-## Authors
+## Author
 
-* **Roy Galili** - *Initial work*
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Roy Galili** - *Initial work*
