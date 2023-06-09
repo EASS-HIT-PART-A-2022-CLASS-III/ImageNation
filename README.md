@@ -22,7 +22,7 @@ git clone https://github.com/EASS-HIT-PART-A-2022-CLASS-III/ImageNation.git
 Navigate to the project directory:
 
 ```bash
-cd ImageNation/app
+cd ImageNation/
 ```
 
 Use Docker Compose to build and start the project:
