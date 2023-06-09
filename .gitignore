@@ -7,4 +7,5 @@ __pycache__/
 .vscode
 **/*.db
 *.env
+.env 
 app/backend/images/images.db
