@@ -1,82 +1,60 @@
-# ImagePlotter
+# ImageNation
 
-ImagePlotter is a web application built with FastAPI that allows users to upload images and retrieve the GPS coordinates, date, and perceptual hash of each image.
+ImageNation is a web application that enables users to upload images and extract insightful metadata, such as GPS coordinates, date, and perceptual hash. Additionally, it facilitates image management by displaying, updating, and deleting image records. The application is built in Python using FastAPI, Streamlit and Docker for a seamless and efficient user experience.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+Follow these instructions to get a copy of the project up and running on your local machine
 
 ### Prerequisites
 
-* Python 3.10 or later
-* Pip 21.0 or later
-* Docker 19.03 or later
-* Docker Compose 1.27 or later
+- Docker 19.03 or later
 
 ### Installing
 
+To run this project, you will need to follow this steps:
+
 1. Clone the repository:
 
+```sh
+git clone https://github.com/EASS-HIT-PART-A-2022-CLASS-III/ImageNation.git
 ```
-git clone https://github.com/EASS-HIT-PART-A-2022-CLASS-III/myImages.git
-```
+    Navigate to the project directory:
 
-2. Navigate to the project directory:
-
-```
-cd imageplotter
-```
-
-3. Install the project dependencies:
-
-```
-pip install -r requirements.txt
+```sh
+cd ImageNation/app
 ```
 
-4. Build the Docker image:
+    Use Docker Compose to build and start the project:
 
-```
-docker build -t imageplotter .
-```
-
-### Running
-
-1. Start the Docker container:
-
-```
-docker run -p 8800:8800 imageplotter
+```sh
+docker-compose up
 ```
 
-2. Open your web browser and go to http://localhost:8800.
+    Open your web browser and navigate to http://localhost:8501.
+    Enjoy :)
+
+Features
+
+    📁 Bulk or single image uploading
+    🔍 Perceptual hash calculation for uploaded images
+    🌍 GPS coordinates and date metadata extraction from EXIF data
+    🖼 Display and management of image records
+    🗑 Easy deletion of uploaded images
+    🔄 Metadata updates for uploaded images
+    🔍 Finding and displaying duplicate images based on perceptual hash values
 
 
-## Usage
-
-- Uploading one or multiple images at once
-- Calculating the perceptual hash value (phash) for each uploaded image
-- Extracting GPS and date metadata from the EXIF data of each uploaded image
-- Displaying the list of uploaded images
-- Deleting uploaded images
-- Updating metadata for uploaded images
-- Finding and displaying duplicate images based on phash value
-
-
-## API Endpoints
-
-- `GET /`: Displays a welcome message and the available endpoints.
-- `POST /images/`: Upload one or multiple images and calculate their phash value and extract GPS and date metadata.
-- `GET /images/`: Displays a list of uploaded images.
-- `GET /images/{image_name}`: Displays the details of a specific image.
-- `DELETE /deleteImage/{image_name}`: Deletes a specific image.
-- `PUT /updateImage/{image_name}`: Updates the metadata of a specific image.
-- `PATCH /patchImage/{image_name}`: Partially updates the metadata of a specific image.
-- `GET /findDuplicateImages`: Finds and displays duplicate images.
-
+<!-- Project Architecture
+<p align="center">
+  <img src="path_to_your_architecture_image" alt="ImagePlotter Architecture"/>
+</p> -->
 
 ## Built With
 
 * [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
 * [Docker](https://www.docker.com/) - Containerization platform
+* [Streamlit](https://streamlit.io/) - The Clients side 
 
 ## Authors
 
