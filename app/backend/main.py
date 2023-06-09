@@ -1,15 +1,14 @@
 from fastapi import FastAPI, Request
-from database import engine
 from routers import image, user, authentication
 from starlette.middleware.base import BaseHTTPMiddleware
 import time
-import models
+from data_base import models, database
 
 
 app = FastAPI(title="Image-Nation_Backend", version="0.2.0")
 
 
-models.Base.metadata.create_all(engine)
+models.Base.metadata.create_all(database.engine)
 
 
 app.include_router(authentication.router)

@@ -1,18 +1,14 @@
+import warnings
 from fastapi.testclient import TestClient
 from fastapi import status
 import pytest
 import sys
-import os
 from pathlib import Path
 
 current_dir = Path(__file__).parent
 parent_dir = current_dir.parent
 sys.path.append(str(parent_dir))
 from main import app
-from PIL.ExifTags import TAGS, GPSTAGS
-import warnings
-
-warnings.filterwarnings("ignore", message=".*num_enc_workers has no effect.*")
 
 
 @pytest.fixture
@@ -27,7 +23,7 @@ def test_home(test_app: TestClient):
 
 
 def test_process_image_file(test_app: TestClient):
-    path = "/home/royga/eass/finalproject/myImages/app/image_processor/test/test_images"
+    path = "test_images"
     test_images = ["testImage1.jpeg", "testImage2.jpeg", "testImageCopy.jpeg"]
     for image_name in test_images:
         image_path = f"{path}/{image_name}"
@@ -67,8 +63,12 @@ def test_find_duplicates(test_app: TestClient):
         {"name": "image2.jpg", "phash": "d1d1d1d1d1d1d1d2"},
         {"name": "image3.jpg", "phash": "ffffffffffffffff"},
     ]
-    response = test_app.post("/find_duplicates/", json=images)
-    assert response.status_code == 200
-    response_data = response.json()
-    assert "duplicates" in response_data
-    assert "image2.jpg" in response_data["duplicates"]
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", category=RuntimeWarning, module="imagededup.methods.hashing"
+        )
+        response = test_app.post("/find_duplicates/", json=images)
+        assert response.status_code == 200
+        response_data = response.json()
+        assert "duplicates" in response_data
+        assert "image2.jpg" in response_data["duplicates"]
