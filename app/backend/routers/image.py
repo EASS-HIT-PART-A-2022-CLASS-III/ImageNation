@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, status, HTTPException, File
 from typing import List
 from sqlalchemy.orm import Session
-import database, schemas, models
-from app_authentication import oauth2
+from data_base import oauth2, schemas, models, database
 from repository import image
 
 
@@ -170,4 +169,3 @@ def update_image(
 ):
     user_id = current_user.id
     return image.update(image_id, request, db, user_id)
-

@@ -1,0 +1,39 @@
+version: '1'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8800:8800"
+    depends_on:
+      - image_processor
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  image_processor:
+    build:
+      context: ./image_processor
+      dockerfile: Dockerfile
+    ports:
+      - "8801:8801"
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    driver: bridge

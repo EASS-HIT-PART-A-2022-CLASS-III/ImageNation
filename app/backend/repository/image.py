@@ -1,12 +1,12 @@
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session, joinedload
 from typing import List
-import models, schemas
+from data_base import models, schemas
 import json
 import httpx
 from datetime import datetime
 
-API_URL = "http://localhost:8801"
+API_URL = "http://image_processor:8801"
 
 
 def show_all(db: Session, user_id: int) -> List[schemas.Image]:

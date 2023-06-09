@@ -7,7 +7,7 @@ from streamlit_extras.switch_page_button import switch_page
 import asyncio
 from st_pages import Page
 
-API_URL = "http://localhost:8000"
+API_URL = "http://backend:8800"
 
 
 def get_all_pages():
@@ -165,13 +165,13 @@ async def login(email: str, password: str):
             st.session_state["user"][
                 "action_status"
             ] = "Login failed. Please try again."
-            st.error("Login failed. Please try again.")
+            st.error(st.session_state["user"]["action_status"])
     else:
         st.session_state["user"]["logged_in"] = False
         st.session_state["user"][
             "action_status"
-        ] = "Login failed. Please check your credentials."
-        st.error("Login failed. Please try again.")
+        ] = "Login failed. do you need to sign up?"
+        st.error(st.session_state["user"]["action_status"])
 
 
 async def signup(name: str, email: str, password: str):
