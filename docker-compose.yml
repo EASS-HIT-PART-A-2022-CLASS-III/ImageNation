@@ -1,12 +1,15 @@
 version: '1'
 
 services:
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8800:8800"
+    volumes:
+      - ./backend:/ImageNation/backend
     depends_on:
       - image_processor
     networks:
@@ -19,7 +22,7 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/ImageNation/frontend
     depends_on:
       - backend
     networks:
@@ -31,6 +34,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8801:8801"
+    volumes:
+      - ./image_processor:/ImageNation/image_processor
     networks:
       - app-network
       

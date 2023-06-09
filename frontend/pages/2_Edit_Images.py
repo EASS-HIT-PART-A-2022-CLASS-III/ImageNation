@@ -32,12 +32,6 @@ st.markdown(
 st.write("---")
 
 
-def prepare_columns():
-    col1, col2, col3 = st.columns([1, 1, 2])
-    image_placeholder = col3.empty()
-    return col1, col2, col3, image_placeholder
-
-
 def prepare_input_values(image_for_edit):
     selected_datetime = (
         datetime.strptime(image_for_edit["date"], "%Y-%m-%dT%H:%M:%S")
@@ -98,10 +92,15 @@ def update_image(image_for_edit, edit_name, new_date, new_time, marker):
 
 
 def edit_image_data(images_names):
-    col11, col22, col3, _ = st.columns([1, 1, 1, 1])
+    (
+        col11,
+        col22,
+        _,
+        col3,
+    ) = st.columns([1, 1, 1, 2])
     with col11:
         select_placeholder = col11.empty()
-        select_placeholder.write(":red[Please select image]")
+        select_placeholder.write("**:red[Please select image]**")
     with col22:
         result = selectbox(
             "Select Image",
@@ -109,39 +108,36 @@ def edit_image_data(images_names):
             no_selection_label="<None>",
             label_visibility="collapsed",
         )
-
     if result:
-        select_placeholder.write(":green[Image selected]")
-        col1, col2, col3, image_placeholder = prepare_columns()
-        # image_name_placeholder.subheader(f"{result}")
+        st.write("---")
+        select_placeholder.write("***:green[Image selected]***")
+        col1, col2 = st.columns([1, 2])
         image_for_edit = get_image_for_edit(result)
-        image_bytes = decode_base64(image_for_edit["content"])
-        if image_bytes:
-            try:
-                image = Image.open(io.BytesIO(image_bytes))
-                caption = f"{image_for_edit['name']}"
-                image_placeholder.image(image, caption=caption, width=250)
-            except:
-                pass
-
-        # col1_1, col1_2 = col1.columns(2)
         with col1:
-            edit_name = st.text_input("Image Name", image_for_edit["name"])
+            st.text("Edit image and press 'Submit' to save")
             (
                 selected_date,
                 selected_time,
                 image_latitude,
                 image_longitude,
             ) = prepare_input_values(image_for_edit)
+            edit_name = st.text_input("Image Name", image_for_edit["name"])
             new_date = st.date_input("Image Date", selected_date)
-            new_latitude = st.number_input("Image Latitude", value=image_latitude)
-
-        with col2:
             new_time = st.time_input("Image Time", selected_time)
+            new_latitude = st.number_input("Image Latitude", value=image_latitude)
             new_longitude = st.number_input("Image Longitude", value=image_longitude)
-
-        m, marker = setup_map(new_latitude, new_longitude)
-        folium_static(m)
+        with col2:
+            selsected_image_placeholder = col2.empty()
+            image_bytes = decode_base64(image_for_edit["content"])
+            if image_bytes:
+                try:
+                    image = Image.open(io.BytesIO(image_bytes))
+                    caption = f"{image_for_edit['name']}"
+                    selsected_image_placeholder.image(image, caption=caption, width=400)
+                except:
+                    pass
+            m, marker = setup_map(new_latitude, new_longitude)
+            folium_static(m, width=400, height=300)
 
         with col1.form("Edit Image Data", clear_on_submit=True):
             form_state = st.form_submit_button("Submit")
