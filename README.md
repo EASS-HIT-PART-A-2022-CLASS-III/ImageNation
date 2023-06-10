@@ -43,10 +43,11 @@ Features
     🔄 Metadata updates for uploaded images
     🔍 Finding and delete duplicate images based on perceptual hash values
 
-<!-- Project Architecture
+Project Architecture
 <p align="center">
-  <img src="path_to_your_architecture_image" alt="ImagePlotter Architecture"/>
-</p> -->
+  <img src="ProjArc.png"/>
+</p> 
+
 ## Built With
 
 * [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
