@@ -51,6 +51,9 @@ Enjoy :)
 ## Screenshots
 <p align="center">
   <img src="/res/main.png"/>
+  <img src="/res/upload.png"/>
+  <img src="/res/details.png"/>
+  <img src="/res/map.png"/>
 </p> 
 
 ## Built With
