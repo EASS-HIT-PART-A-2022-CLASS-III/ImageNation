@@ -49,7 +49,10 @@ Project Architecture
 </p> 
 
 ## Screenshots
-![Home](/res/Main.png)
+p align="center">
+  <img src="/res/Main.png"/>
+</p> 
+
 ## Built With
 
 * [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
