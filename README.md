@@ -45,7 +45,7 @@ Enjoy :)
 
 ## Project Architecture
 <p align="center">
-  <img src="/res/ProjArc.png"/>
+  <img src="/res/projarc.png"/>
 </p> 
 
 ## Screenshots
@@ -64,4 +64,4 @@ Enjoy :)
 
 ## Author
 
-**Roy Galili** - *Initial work*
+**Roy Galili**
