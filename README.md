@@ -14,10 +14,10 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 To run this project, you will need to follow this steps:
 
-1. Clone the repository:
+1. Clone the repository (ssh):
 
 ```bash
-git clone https://github.com/EASS-HIT-PART-A-2022-CLASS-III/ImageNation.git
+git clone git@github.com:EASS-HIT-PART-A-2022-CLASS-III/ImageNation.git
 ```
 Navigate to the project directory:
 
