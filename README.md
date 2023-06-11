@@ -34,7 +34,7 @@ docker-compose up
 Open your web browser and navigate to http://localhost:8501.
 Enjoy :)
 
-Features
+## Features
 
     📁 Bulk or single image uploading
     🔍 Perceptual hash calculation for uploaded images
@@ -43,13 +43,19 @@ Features
     🔄 Metadata updates for uploaded images
     🔍 Finding and delete duplicate images based on perceptual hash values
 
-Project Architecture
+## Project Architecture
 <p align="center">
   <img src="/res/ProjArc.png"/>
 </p> 
 
 ## Screenshots
-![Home](/res/Main.png)
+<p align="center">
+  <img src="/res/main.png"/>
+  <img src="/res/upload.png"/>
+  <img src="/res/details.png"/>
+  <img src="/res/map.png"/>
+</p> 
+
 ## Built With
 
 * [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
