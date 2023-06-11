@@ -45,9 +45,11 @@ Features
 
 Project Architecture
 <p align="center">
-  <img src="ProjArc.png"/>
+  <img src="/res/ProjArc.png"/>
 </p> 
 
+## Screenshots
+![Home](/res/Main.png)
 ## Built With
 
 * [FastAPI](https://fastapi.tiangolo.com/) - The web framework used
