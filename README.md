@@ -50,7 +50,7 @@ Project Architecture
 
 ## Screenshots
 p align="center">
-  <img src="/res/Main.png"/>
+  <img src="/res/main.png"/>
 </p> 
 
 ## Built With
