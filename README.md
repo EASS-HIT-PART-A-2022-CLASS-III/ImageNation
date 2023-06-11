@@ -44,12 +44,12 @@ Features
     🔍 Finding and delete duplicate images based on perceptual hash values
 
 Project Architecture
-<p>
+<p align="center">
   <img src="/res/ProjArc.png"/>
 </p> 
 
 ## Screenshots
-p align="center">
+<p align="center">
   <img src="/res/main.png"/>
 </p> 
 
