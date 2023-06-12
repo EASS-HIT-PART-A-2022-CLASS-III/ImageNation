@@ -48,6 +48,9 @@ Enjoy :)
   <img src="/res/projarc.png"/>
 </p> 
 
+## Demo Video
+
+[![Video Demo](https://img.youtube.com/vi/C7XEbuK9pZ0/maxresdefault.jpg)](https://youtu.be/C7XEbuK9pZ0)
 ## Screenshots
 <p align="center">
   <img src="/res/main.png"/>
