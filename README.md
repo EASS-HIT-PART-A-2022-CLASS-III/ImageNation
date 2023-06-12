@@ -53,7 +53,6 @@ Enjoy :)
 [![Video Demo](https://img.youtube.com/vi/C7XEbuK9pZ0/maxresdefault.jpg)](https://youtu.be/C7XEbuK9pZ0)
 ## Screenshots
 <p align="center">
-  <img src="/res/main.png"/>
   <img src="/res/upload.png"/>
   <img src="/res/details.png"/>
   <img src="/res/map.png"/>
