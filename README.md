@@ -41,7 +41,7 @@ Enjoy :)
     🌍 GPS coordinates and date metadata extraction from EXIF data
     🖼 Display and management of image records
     🔄 Metadata updates for uploaded images
-    🔍 Finding and delete duplicate images based on perceptual hash values
+    
 
 ## Project Architecture
 <p align="center">

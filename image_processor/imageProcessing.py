@@ -1,8 +1,9 @@
 import base64
+import math
 import shutil
 from typing import List, Tuple, Union
 #from imagededup.methods import PHash
-from PIL import Image, ImageDraw, ImageOps, ImagePath
+from PIL import Image, ImageDraw,ImageChops, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
@@ -11,10 +12,7 @@ import tempfile
 from geopy import Point
 from geopy.geocoders import Nominatim
 
-
-def extract_gps_data_and_convert_to_decimal(
-    gps_data: dict,
-) -> Tuple[float, float, float, float]:
+def extract_gps_data_and_convert_to_decimal(gps_data: dict) -> Tuple[float, float, float, float]:
     latitude = gps_data.get("GPSLatitude", None)
     longitude = gps_data.get("GPSLongitude", None)
     latitude_ref = gps_data.get("GPSLatitudeRef", None)
@@ -22,6 +20,8 @@ def extract_gps_data_and_convert_to_decimal(
     altitude = gps_data.get("GPSAltitude", None)
     altitude_ref = gps_data.get("GPSAltitudeRef", b"\x00")
     direction = gps_data.get("GPSImgDirection", None)
+    direction_ref = gps_data.get("GPSImgDirectionRef", None)
+    direction = direction * (-1 if direction_ref == "M" else 1)
     if latitude and longitude and latitude_ref and longitude_ref:
         lat = (latitude[0] + latitude[1] / 60 + latitude[2] / 3600) * (
             -1 if latitude_ref == "S" else 1
@@ -33,10 +33,12 @@ def extract_gps_data_and_convert_to_decimal(
             alt = altitude * (-1 if altitude_ref == b"\x01" else 1)
         else:
             alt = None
-        dir = direction
-        return lat, lon, alt, dir
+        return lat, lon, alt, direction
     else:
         return None, None, None, None
+
+
+
 
 
 def decode_base64(encoded_str: str) -> bytes:
@@ -148,58 +150,82 @@ async def parse_gps_and_date(
 #     return duplicates
 
 
+
 def make_round(
     image,
-    size=(40, 40),
-    border=5,
+    size=(300, 300),  # Making the circle larger
+    border=7,
     fill_color="white",
     outer_color="black",
-    outer_width=2,
+    outer_width=3,
+    direction=0,
+    arrow_length=60,  # Making the arrow even larger
+    arrow_width_factor=0.7,
+    arrow_color="red"
 ):
     image = image.resize(size, Image.LANCZOS)
-    result = Image.new(
-        "RGBA",
-        (
-            size[0] + border * 2 + outer_width * 2,
-            size[1] + border * 2 + outer_width * 2,
-        ),
+    canvas_size = (
+        size[0] + border * 3 + outer_width * 3 + arrow_length,
+        size[1] + border * 3 + outer_width * 3 + arrow_length
     )
+    result = Image.new("RGBA", canvas_size, (255, 255, 255, 0))
     mask = Image.new("L", size, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0) + size, fill=255)
-    result.paste(image, (border + outer_width, border + outer_width), mask=mask)
+    paste_position = (
+        (canvas_size[0] - size[0]) // 2,
+        (canvas_size[1] - size[1]) // 2
+    )
+    result.paste(image, paste_position, mask=mask)
     draw = ImageDraw.Draw(result)
     draw.ellipse(
-        (0, 0, result.size[0] - 1, result.size[1] - 1),
-        outline=outer_color,
-        width=outer_width,
+        (
+            paste_position[0] - border,
+            paste_position[1] - border,
+            paste_position[0] + size[0] + border,
+            paste_position[1] + size[1] + border
+        ),
+        outline=fill_color,
+        width=border
     )
     draw.ellipse(
         (
-            outer_width,
-            outer_width,
-            result.size[0] - outer_width - 1,
-            result.size[1] - outer_width - 1,
+            paste_position[0] - border - outer_width,
+            paste_position[1] - border - outer_width,
+            paste_position[0] + size[0] + border + outer_width,
+            paste_position[1] + size[1] + border + outer_width
         ),
-        outline=fill_color,
-        width=border,
+        outline=outer_color,
+        width=outer_width
     )
+    center_x, center_y = canvas_size[0] // 2, canvas_size[1] // 2
+    angle = math.radians(90 - direction)
+    arrow_tip_x = center_x + (size[0] // 2 + arrow_length * 0.75 + border + outer_width) * math.cos(angle)
+    arrow_tip_y = center_y - (size[1] // 2 + arrow_length * 0.75 + border + outer_width) * math.sin(angle)
+    arrow_base_left_x = arrow_tip_x + arrow_length * arrow_width_factor * math.cos(angle + math.radians(120))
+    arrow_base_left_y = arrow_tip_y - arrow_length * arrow_width_factor * math.sin(angle + math.radians(120))
+    arrow_base_right_x = arrow_tip_x + arrow_length * arrow_width_factor * math.cos(angle - math.radians(120))
+    arrow_base_right_y = arrow_tip_y - arrow_length * arrow_width_factor * math.sin(angle - math.radians(120))
+    draw.polygon([(arrow_tip_x, arrow_tip_y), (arrow_base_left_x, arrow_base_left_y), (arrow_base_right_x, arrow_base_right_y)], fill=arrow_color)
+
     return result
+
 
 
 class SmallImageProcessingError(Exception):
     pass
 
 
-async def process_small_image_data(image_data: bytes) -> bytes:
+async def process_small_image_data(image_data: bytes, direction: float) -> bytes:
     try:
         with Image.open(io.BytesIO(image_data)) as img:
-            processed_img = make_round(img)
+            processed_img = make_round(img, direction=direction)
             byte_arr = io.BytesIO()
             processed_img.save(byte_arr, format="PNG")
             return byte_arr.getvalue()
     except Exception as e:
         raise SmallImageProcessingError() from e
+
 
 
 async def process_image_data(
@@ -210,7 +236,7 @@ async def process_image_data(
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, direction=dir)
     file_size_mb = len(image_data) / (1024 * 1024)
     image_encoded = encode_base64(image_data)
-    small_image_data = await process_small_image_data(image_data)
+    small_image_data = await process_small_image_data(image_data, direction=dir)
     small_round_image = encode_base64(small_image_data)
     location_data = await get_location_details(lat, lon)
     country = get_country_name(location_data)
