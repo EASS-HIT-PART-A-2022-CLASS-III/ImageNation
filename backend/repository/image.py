@@ -137,7 +137,7 @@ def show_all_data(db: Session, user_id: int) -> List[schemas.ImageData]:
             latitude=image.gps.latitude if image.gps else 0,
             longitude=image.gps.longitude if image.gps else 0,
             country=image.location.country if image.location else "Unknown",
-            phash=image.phash,
+            #phash=image.phash,
         )
         image_data_list.append(image_data)
 
@@ -177,7 +177,7 @@ def create_image(
 ):
     new_image = models.Image(
         name=request.name,
-        phash=request.phash,
+        #phash=request.phash,
         size=request.size,
         date=request.date,
         content=request.content,
@@ -282,30 +282,30 @@ def update(image_id: str, request: dict, db: Session, user_id: int):
     return {"message": f"image with the id: {image_id} updated"}
 
 
-async def show_all_duplicates(db: Session, user_id: int):
-    images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
-    if not images:
-        raise HTTPException(status_code=404, detail="No images found for user")
-    image_dups = []
-    for image in images:
-        image_dup = schemas.ImageDup(name=image.name, phash=image.phash)
-        image_dups.append(image_dup.dict())
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{API_URL}/find_duplicates/",
-                json=image_dups,
-            )
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="No duplicates found"
-            )
-        return response.json()
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Service unavailable",
-        )
+# async def show_all_duplicates(db: Session, user_id: int):
+#     images = db.query(models.Image).filter(models.Image.user_id == user_id).all()
+#     if not images:
+#         raise HTTPException(status_code=404, detail="No images found for user")
+#     image_dups = []
+#     for image in images:
+#         image_dup = schemas.ImageDup(name=image.name, phash=image.phash)
+#         image_dups.append(image_dup.dict())
+#     try:
+#         async with httpx.AsyncClient() as client:
+#             response = await client.post(
+#                 f"{API_URL}/find_duplicates/",
+#                 json=image_dups,
+#             )
+#         if response.status_code != 200:
+#             raise HTTPException(
+#                 status_code=status.HTTP_404_NOT_FOUND, detail="No duplicates found"
+#             )
+#         return response.json()
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+#             detail="Service unavailable",
+#         )
 
 
 async def process_and_create_images(

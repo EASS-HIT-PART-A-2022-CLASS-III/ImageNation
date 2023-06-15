@@ -17,7 +17,7 @@ class GPS(BaseModel):
 
 class ImageModel(BaseModel):
     name: str = Field(..., example="image.jpg")
-    phash: str = Field(None, example="0000000000000000")
+    #phash: str = Field(None, example="0000000000000000")
     size: float = Field(None, example=0.0)
     gps: GPS | None = Field(None)
     location: Location | None = Field(None)
@@ -90,7 +90,7 @@ class ImageData(BaseModel):
     direction: float | None = Field(None)
     latitude: float | None = Field(None)
     longitude: float | None = Field(None)
-    phash: str | None = Field(None)
+    #phash: str | None = Field(None)
 
 
 class ImageEdit(BaseModel):
@@ -121,9 +121,9 @@ class ImageMap(BaseModel):
     date: datetime | None = Field(None)
 
 
-class ImageDup(BaseModel):
-    name: str
-    phash: str
+#class ImageDup(BaseModel):
+    #name: str
+    #phash: str
 
 
 class DateTimeEncoder(json.JSONEncoder):

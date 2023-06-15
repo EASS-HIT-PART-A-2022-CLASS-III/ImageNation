@@ -160,7 +160,13 @@ def plot_images_on_map(df):
             else:
                 marker, name = result
                 marker.add_to(marker_cluster)
-        folium_static(m, width=900, height=600)
+        
+        # Creating a full screen container
+        container = st.container()
+        with container:
+            folium_static(m, width=1430, height=620)
+            
+
     st.success("Map loaded!")
     if warnings:
         for warning in warnings:

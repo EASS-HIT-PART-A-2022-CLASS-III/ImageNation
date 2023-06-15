@@ -16,7 +16,7 @@ class GPS(BaseModel):
 
 class ImageModel(BaseModel):
     name: str = Field(..., example="image.jpg")
-    phash: str = Field(None, example="0000000000000000")
+    #phash: str = Field(None, example="0000000000000000")
     size: float = Field(None, example=0.0)
     gps: GPS | None = Field(None)
     location: Location | None = Field(None)
@@ -27,6 +27,6 @@ class ImageModel(BaseModel):
     )
 
 
-class ImageDup(BaseModel):
-    name: str
-    phash: str
+# class ImageDup(BaseModel):
+#     name: str
+#     phash: str

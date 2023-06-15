@@ -25,7 +25,7 @@ class Image(Base):
     __tablename__ = "images"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    phash = Column(String)
+    #phash = Column(String)
     size = Column(Float)
     date = Column(DateTime)
     content = Column(String)

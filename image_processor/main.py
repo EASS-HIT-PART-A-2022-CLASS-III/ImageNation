@@ -35,10 +35,10 @@ async def get_location_details(latitude: float, longitude: float) -> schemas.Loc
     return image_location_data
 
 
-@app.post("/find_duplicates/", status_code=status.HTTP_200_OK)
-async def find_duplicates(images: List[schemas.ImageDup]):
-    duplicates = await imageProcessing.find_duplicate_images(images)
-    return {"duplicates": duplicates}
+# @app.post("/find_duplicates/", status_code=status.HTTP_200_OK)
+# async def find_duplicates(images: List[schemas.ImageDup]):
+#     duplicates = await imageProcessing.find_duplicate_images(images)
+#     return {"duplicates": duplicates}
 
 
 async def process_image_data_with_error_handling(
@@ -54,11 +54,11 @@ async def process_image_data_with_error_handling(
             raise HTTPException(
                 status.HTTP_400_BAD_REQUEST, f"Unable to process image {image_filename}"
             )
-    except imageProcessing.PhashCalculationError:
-        raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            f"Error calculating phash for {image_filename}",
-        )
+    # except imageProcessing.PhashCalculationError:
+    #     raise HTTPException(
+    #         status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         f"Error calculating phash for {image_filename}",
+    #     )
     except imageProcessing.ErrorParsingGPSDate:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

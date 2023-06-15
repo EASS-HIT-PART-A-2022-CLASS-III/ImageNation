@@ -1,12 +1,12 @@
 import base64
 import shutil
 from typing import List, Tuple, Union
-from imagededup.methods import PHash
+#from imagededup.methods import PHash
 from PIL import Image, ImageDraw, ImageOps, ImagePath
 from PIL.ExifTags import TAGS, GPSTAGS
 import io
 from datetime import datetime
-from schemas import ImageModel, GPS, Location, ImageDup
+from schemas import ImageModel, GPS, Location
 import tempfile
 from geopy import Point
 from geopy.geocoders import Nominatim
@@ -116,36 +116,36 @@ async def parse_gps_and_date(
         raise ErrorParsingGPSDate() from e
 
 
-class PhashCalculationError(Exception):
-    pass
+#class PhashCalculationError(Exception):
+#    pass
 
 
-async def calculate_phash_value(image_data: bytes) -> str:
-    phasher = PHash()
-    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-        try:
-            tmp_file.write(image_data)
-            path = tmp_file.name
-            result = phasher.encode_image(path)
-        except Exception as e:
-            raise PhashCalculationError()
-        finally:
-            shutil.os.remove(path)
-    return result
+# async def calculate_phash_value(image_data: bytes) -> str:
+#     phasher = PHash()
+#     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+#         try:
+#             tmp_file.write(image_data)
+#             path = tmp_file.name
+#             result = phasher.encode_image(path)
+#         except Exception as e:
+#             raise PhashCalculationError()
+#         finally:
+#             shutil.os.remove(path)
+#     return result
 
 
-async def find_duplicate_images(images: List[ImageDup]) -> List[str]:
-    phasher = PHash()
-    encoding_images = {}
-    for image in images:
-        if image.phash:
-            encoding_images[image.name] = image.phash
-    duplicates = phasher.find_duplicates_to_remove(
-        encoding_map=encoding_images, max_distance_threshold=12
-    )
-    if not duplicates:
-        return []
-    return duplicates
+# async def find_duplicate_images(images: List[ImageDup]) -> List[str]:
+#     phasher = PHash()
+#     encoding_images = {}
+#     for image in images:
+#         if image.phash:
+#             encoding_images[image.name] = image.phash
+#     duplicates = phasher.find_duplicates_to_remove(
+#         encoding_map=encoding_images, max_distance_threshold=12
+#     )
+#     if not duplicates:
+#         return []
+#     return duplicates
 
 
 def make_round(
@@ -205,7 +205,7 @@ async def process_small_image_data(image_data: bytes) -> bytes:
 async def process_image_data(
     image_data: bytes, image_filename: str
 ) -> Union[ImageModel, None]:
-    phash_value = await calculate_phash_value(image_data)
+    #_value = await calculate_phash_value(image_data)
     lat, lon, alt, dir, date = await parse_gps_and_date(image_data)
     gps_data = GPS(latitude=lat, longitude=lon, altitude=alt, direction=dir)
     file_size_mb = len(image_data) / (1024 * 1024)
@@ -217,7 +217,7 @@ async def process_image_data(
     location = Location(country=country, data=location_data)
     image_obj = ImageModel(
         name=image_filename,
-        phash=phash_value,
+        #phash=phash_value,
         size=file_size_mb,
         gps=gps_data.dict(),
         location=location,
